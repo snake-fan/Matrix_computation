@@ -1,0 +1,383 @@
+\documentclass[english,onecolumn]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage[colorlinks]{hyperref}
+\usepackage{color,xcolor}
+\usepackage{amsthm,amssymb,amsfonts,amsmath}
+\usepackage{mathtools}
+
+% for matlab code highlight
+% load package with ``framed'' and ``numbered'' option.
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+
+\providecommand{\U}[1]{\protect\rule{.1in}{.1in}}
+\topmargin            -18.0mm
+\textheight           226.0mm
+\oddsidemargin      -4.0mm
+\textwidth            166.0mm
+\def\baselinestretch{1.5}
+
+
+
+
+% math operator macros
+\newcommand{\madj}{\mathop{\mathrm{adj}}}
+\newcommand{\trace}{\mathop{\mathrm{tr}}}
+
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert} 
+\DeclarePairedDelimiter{\pnorm}{\lVert}{\rVert_p}
+
+
+
+% special letters
+\newcommand{\x}{{\mathbf{x}}} % vector x
+\newcommand{\y}{{\mathbf{y}}} % vector y
+\newcommand{\z}{{\mathbf{z}}} % vector z
+\newcommand{\0}{{\mathbf{0}}} % zero vector
+
+\newcommand{\A}{{\mathbf{A}}} % matrix A
+\newcommand{\B}{{\mathbf{B}}} % matrix B
+\newcommand{\matC}{{\mathbf{C}}} % matrix C
+\newcommand{\matD}{{\mathbf{D}}} % matrix D
+\newcommand{\matE}{{\mathbf{E}}} % matrix E
+\newcommand{\matH}{{\mathbf{H}}} % matrix H
+\newcommand{\matK}{{\mathbf{K}}} % matrix K
+\newcommand{\X}{{\mathbf{X}}} % matrix X
+\newcommand{\Y}{{\mathbf{Y}}} % matrix Y
+\newcommand{\Z}{{\mathbf{Z}}} % matrix Z
+\newcommand{\M}{{\mathbf{M}}} % matrix M
+\newcommand{\I}{{\mathbf{I}}} % identity matrix
+
+\newcommand{\calV}{{\mathcal{V}}} % subspace V
+\newcommand{\calU}{{\mathcal{U}}} % subspace U
+\newcommand{\calS}{{\mathcal{S}}} % subspace S
+\newcommand{\calM}{{\mathcal{M}}} % subspace M
+\newcommand{\calN}{{\mathcal{N}}} % subspace N
+\newcommand{\calR}{\mathop{\mathcal{R}}} % range
+\renewcommand{\calN}{\mathop{\mathcal{N}}} % nullspace
+
+% number fields
+\newcommand{\R}{\mathbb{R}} % real numbers
+\newcommand{\C}{\mathbb{C}} % complex numbers
+
+\newcommand{\bigO}{{\mathcal{O}}} % big-Oh notation
+
+
+
+
+
+
+
+
+
+\begin{document}
+
+\begin{center}
+	\textbf{\LARGE{SI231B: Matrix Computations, 2025 Fall}}\\
+	{\Large Homework Set \#1}\\
+	% \texttt{Prof. Jie Lu}
+\par\end{center}
+
+\noindent
+\rule{\linewidth}{0.4pt}
+% \noindent
+% \rule{\linewidth}{0.4pt}
+{\bf Acknowledgements:}
+\begin{enumerate}
+	\item Deadline: {\bf \textcolor{red}{2025-10-26 23:59:59}}
+    \item Please submit the PDF file to \hyperlink{https://www.gradescope.com/}{gradescope}. Course entry code: N2382J.
+    \item You have 5 ``free days'' in total for all late homework submissions.
+    \item If your homework is handwritten, please make it clear and legible.
+    \item All your answers are required to be in English. 
+    \item Write down the major steps for deriving the solution; otherwise you may loss points.
+\end{enumerate}
+\rule{\linewidth}{0.4pt}
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 1. (Subspaces and Decompositions)} \hfill (\textcolor{blue}{20 points})
+\begin{enumerate}
+    \item Let $\mathcal{V} = \mathbb{R}^2$. Determine whether each of the following is a subspace of $\mathcal{V}$. Recall that $\mathbb{Q}$ denotes the set of rational numbers. Justify your answer.
+
+        \begin{enumerate}
+            \item $\mathcal{S}_1 = \{(x, y) \in \mathbb{R}^2 \mid x - 2y = 0\}$. \hfill (\textcolor{blue}{4 points})
+            
+            \item $\mathcal{S}_2 = \{(x, y) \in \mathbb{R}^2 \mid x + y \in \mathbb{Q}\}$. \hfill (\textcolor{blue}{4 points})
+        \end{enumerate}
+
+    \item Now let $\mathcal{V} = \mathbb{C}^{n \times n}$, the set of all $n \times n$ complex matrices, viewed as a vector space over the real numbers $\mathbb{R}$, where: 
+    \begin{enumerate}
+        \item Vector addition is the conventional matrix addition, i.e., for $A,B\in\mathcal{V}$, $(A+B)_{i,j} = A_{ij}+B_{ij},\forall 1\le i,j \le n$, and $A_{ij}$ (or equivalently $A_{i,j}$) denotes the entry of matrix $A$ located in the $i$-th row and $j$-th column;
+        \item Scalar multiplication is defined only for real scalars, i.e., given $\alpha\in\mathbb{R}$, $(\alpha A)_{ij} = \alpha\cdot A_{ij},\forall 1\le i,j \le n$.
+    \end{enumerate}
+    Define the map $\Phi : \mathcal{V} \to \mathcal{V}$ by taking the complex conjugate of every entry of a matrix:
+    \[
+    \Phi(A) = \overline{A}.
+    \]
+    
+    It is given that $\Phi$ satisfies the following two properties:
+    \begin{itemize}
+        \item For all real numbers $\alpha, \beta$ and all matrices $A, B \in \mathcal{V}$,
+        \[
+        \Phi(\alpha A + \beta B) = \alpha \Phi(A) + \beta \Phi(B).
+        \]
+        \item Applying $\Phi$ twice returns the original matrix:
+        \[
+        \Phi(\Phi(A)) = A \quad \text{for all } A \in \mathcal{V}.
+        \]
+    \end{itemize}
+    
+    \begin{enumerate}
+        \item Show that the sets
+        \[
+            \mathcal{V}_+ = \{ A \in \mathcal{V} \mid \Phi(A) = A \}, \quad
+            \mathcal{V}_- = \{ A \in \mathcal{V} \mid \Phi(A) = -A \}
+        \]
+        are subspaces of $\mathcal{V}$ over $\mathbb{R}$. \hfill (\textcolor{blue}{6 points})
+        
+        \item Prove that every matrix $A \in \mathcal{V}$ can be written \textbf{in exactly one way} as
+        \[
+            A = A_+ + A_-,
+        \]
+        where $A_+ \in \mathcal{V}_+$ and $A_- \in \mathcal{V}_-$. And, show that
+        \[
+            \mathcal{V} = \mathcal{V}_+ + \mathcal{V}_- \quad \text{and} \quad \mathcal{V}_+ \cap \mathcal{V}_- = \{0\}.
+        \] \hfill (\textcolor{blue}{6 points})
+    \end{enumerate} 
+\end{enumerate}
+
+
+
+\bigskip
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 2. (Span and Rank)} (\textcolor{blue}{15 points})
+
+\begin{enumerate}
+    \item 
+    \begin{enumerate}
+        \item A general definition of range: a function $L: \mathbb{R}^n \to \mathbb{R}^m$ is called a linear transformation (or linear map) if it satisfied the following two properties for any vector $u,v\in\mathbb{R}^n$ and any scalar $\alpha\in\mathbb{R}$:
+        \begin{itemize}
+            \item \textbf{Additivity:}
+            \[
+            L(u + v) = L(u) + L(v),
+            \]
+            \item \textbf{Homogeneity (scalar multiplication compatibility):}
+            \[
+            L(\alpha v) = \alpha L(v).
+            \]
+        \end{itemize}
+        Equivalently, $L$ is linear if for all $u, v \in V$ and $\alpha, \beta \in \mathbb{R}$, $L(\alpha u + \beta v) = \alpha L(u) + \beta L(v).$
+        The \emph{range} (or \emph{image}) of a linear transformation $L: \mathbb{R}^n \to \mathbb{R}^m$ is the set
+        \[
+        \mathcal{R}(L) := \{ L(v) \in \mathbb{R}^m \mid v \in \mathbb{R}^n \}.
+        \]
+        It is a subspace of $\mathbb{R}^m$. 
+        Given vectors $w_1, \dots, w_k \in \mathbb{R}^m$, their \emph{span} is the set of all linear combinations:
+        \[
+        \operatorname{span}\{w_1, \dots, w_k\} := \left\{ \sum_{i=1}^k \alpha_i w_i \,\middle|\, \alpha_i \in \mathbb{R} \right\},
+        \]
+        which is the smallest subspace of $\mathbb{R}^m$ containing all $w_i$.
+        
+        Let $\{v_1, \dots, v_n\}$ be a basis for $\mathbb{R}^n$. Let $L: \mathbb{R}^n \to \mathbb{R}^m$ be a linear transformation into $\mathbb{R}^m$. Prove $\mathcal{R}(L) = \operatorname{span}\{L(v_1), \dots, L(v_n)\}.$ (\textcolor{blue}{5 points})
+        
+        \item Consider a simple fully-connected layer of neural network with the input $\mathbf{x}\in\mathbb{R}^n$, the weight matrix $\mathbf{W}\in\mathbb{R}^{m\times n}$, and the output $\mathbf{y}=\mathbf{W}\mathbf{x}+\mathbf{b}$ ($b\in\mathbb{R}^m$). Prove that all the outputs through this network are $\mathcal{R}(\mathbf{W})+\mathbf{b}$. (Hint: if the outputs given all basis vectors of $\mathbb{R}^n$ as inputs are known, then the output given any input can be predicted. A higher rank of $\mathbf{W}$ enhances the model's representational capacity. $\mathcal{R}(A)+\mathbf{b}=\{\sum_{i=1}^n x_i\mathbf{A}(:,i)+\mathbf{b}\mid \mathbf{x}\in\mathbb{R}^n \}$) (\textcolor{blue}{5 points})
+    \end{enumerate} 
+    \item  Let $ A \in \mathbb{R}^{m \times n} $ have rank $ p $. Prove that there exist matrices $ X \in \mathbb{R}^{m \times p} $ and $ Y \in \mathbb{R}^{n \times p} $, both of full column rank (i.e., $ \operatorname{rank}(X) = \operatorname{rank}(Y) = p $), such that
+        \[
+        A = X Y^\top.
+        \] (\textcolor{blue}{5 points})
+    
+    
+\end{enumerate}
+
+\bigskip
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 3. (Flop Counting and Algorithm Complexity)} \hfill (\textcolor{blue}{10 points})
+
+\begin{enumerate}
+    \item Recall that the operation \texttt{y = y + a*x} for scalars $a, x, y \in \mathbb{R}$ costs \textbf{2 flops} (one multiplication and one addition). 
+    Complete the following table with the total number of floating-point operations (flops) required for each vector/matrix operation. 
+    Briefly justify your answer for the last three rows. \hfill (\textcolor{blue}{6 points})
+    
+    \begin{table}[h!]
+        \centering
+        \begin{tabular}{|c|c|c|} 
+            \hline
+            Operation & Dimensions & Flops \\ 
+            \hline
+            $\alpha = \mathbf{u}^\top \mathbf{v}$ & $\mathbf{u}, \mathbf{v} \in \mathbb{R}^p$ & $2p$ \\ 
+            $\mathbf{w} = \mathbf{w} + \beta \mathbf{u}$ & $\beta \in \mathbb{R},\ \mathbf{u}, \mathbf{w} \in \mathbb{R}^p$ & $2p$ \\
+            $\mathbf{z} = \mathbf{z} + \mathbf{M} \mathbf{u}$ & $\mathbf{M} \in \mathbb{R}^{q \times p},\ \mathbf{u} \in \mathbb{R}^p,\ \mathbf{z} \in \mathbb{R}^q$ & \underline{\hspace{2.5cm}} \\
+            $\mathbf{N} = \mathbf{N} + \mathbf{v} \mathbf{u}^\top$ & $\mathbf{N} \in \mathbb{R}^{q \times p},\ \mathbf{u} \in \mathbb{R}^p,\ \mathbf{v} \in \mathbb{R}^q$ & \underline{\hspace{2.5cm}} \\
+            $\mathbf{D} = \mathbf{D} + \mathbf{P} \mathbf{Q}$ & $\mathbf{P} \in \mathbb{R}^{q \times r},\ \mathbf{Q} \in \mathbb{R}^{r \times p},\ \mathbf{D} \in \mathbb{R}^{q \times p}$ & \underline{\hspace{2.5cm}} \\
+            \hline
+        \end{tabular}
+    \end{table}
+    
+    \item Let $\mathbf{H} \in \mathbb{R}^{n \times n}$ be defined element-wise by
+    \[
+        h_{ij} = \sum_{k=1}^n \sum_{\ell=1}^n a_{ik} \, b_{k\ell} \, c_{\ell j} \, d_{ij}.
+    \]
+    A naive implementation that computes each $h_{ij}$ directly requires $\mathcal{O}(n^4)$ flops. 
+    Design an algorithm to compute $\mathbf{H}$ using only $\mathcal{O}(n^3)$ flops. 
+    Express your method in terms of matrix operations.  You may use:
+    \begin{itemize}
+        \item Matrix multiplication,
+        \item Matrix transpose,
+        \item Hadamard (element-wise) product: $(\mathbf{X} \circ \mathbf{Y})_{ij} = x_{ij} y_{ij}$.
+    \end{itemize}
+    (Hint: $\mathbf{H}$ can be represented as the Hadamard product of $\mathbf{ABC}$ and $\mathbf{D}$.)
+    \hfill (\textcolor{blue}{4 points})
+    
+    
+\end{enumerate}
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 4. (Norms)} (\textcolor{blue}{15 points})
+
+\begin{enumerate}
+
+\item Show that for any  \( w \in \mathbb{R}^n \) , \( \| w \|_1 \| w \|_\infty \leq \frac{1 + \sqrt{n}}{2} \| w \|_2^2 \).
+(\textcolor{blue}{5 points})
+
+\item Suppose \(u \in \mathbb{R}^m\) and \(v \in \mathbb{R}^n\). Show that if \(E = uv^T\), then \(\| E \|_F = \| E \|_2 = \| u \|_2 \| v \|_2\)
+(\textcolor{blue}{5 points})
+
+\item Given \( A \in \mathbb{R}^{m \times n} \), show that \( \| A \|_2 \leq \sqrt{\| A \|_1 \| A \|_\infty} \) . (\textcolor{blue}{5 points})
+Hint: Let \( a_i, b_i \in \mathbb{R} \) for \( i = 1, 2, \dots, n \), then the following inequality holds:
+\[
+\left( \sum_{i=1}^{n} a_i b_i \right)^2 \leq \left( \sum_{i=1}^{n} a_i^2 \right) \left( \sum_{i=1}^{n} b_i^2 \right)
+\]
+
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 5. (LU Decomposition) } (\textcolor{blue}{25 points})
+
+Consider 
+$\A = \begin{bmatrix}
+ 1 & 3 & 1 & -2\\
+ 2 & 2 & 0 & 5\\
+ -6 & 3 & 4 & 8\\
+ 4 & 2 & -1 & 7
+\end{bmatrix}$, 
+$\mathbf{b} = \begin{bmatrix}
+ 2\\
+ 0\\
+ 2\\
+ 5
+\end{bmatrix}$. 
+\begin{enumerate}
+
+\item Please determine whether matrix $\A$ has an LU decomposition. If it does, provide an LU decomposition; if it does not, explain the reason.
+(\textcolor{blue}{10 points})
+
+
+
+\item Use the conclusion from  problem 1) to assist in solving $\A \x=\mathbf{b}$. (\textcolor{blue}{5 points})
+\item Perform partial pivoting to derive an LU decomposition on permuted \(\mathbf{A}\) (\textcolor{blue}{5 points})
+\item Using the conclusion from problem 1) , provide an LDM decomposition of $\A$ :
+\[
+A = LDM^T
+\]
+where:
+\begin{itemize}
+    \item \( L \) is a unit lower triangular matrix,
+    \item \( D = \text{Diag}(d_1, d_2, \dots, d_n) \) is a diagonal matrix,
+    \item \( M \) is a unit lower triangular matrix (\( M^T \) is therefore a unit upper triangular matrix).
+\end{itemize}
+
+(\textcolor{blue}{5 points})
+
+
+\end{enumerate}
+
+\bigskip
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 6. (Cholesky Decomposition)} (\textcolor{blue}{15 points})
+
+
+
+\begin{enumerate}
+\item
+
+Given \( A = \begin{pmatrix}
+4 & 2 & 2 & 4 \\
+2 & 5 & 1 & 2 \\
+2 & 1 & 5 & 4 \\
+4 & 2 & 4 & 6
+\end{pmatrix} \), provide a Cholesky decomposition of \( A \). 
+(\textcolor{blue}{7.5 points})
+
+\item Let \( A \) be an \( n \times n \) real symmetric positive definite matrix (\( n \geq 2 \)) with Cholesky decomposition \( A = G G^T \). Denote the \( k \)-th leading principal minor of \( A \) by \( \Delta_k = \det(A_k) \), where \( A_k \) is the submatrix formed by the first \( k \) rows and first \( k \) columns of \( A \), and let \( \Delta_0 = 1 \) by convention. \\
+Prove that for any \( k \in \{1, 2, \dots, n\} \) , \( g_{kk}^2 = \frac{\Delta_k}{\Delta_{k-1}} \) ; (\textcolor{blue}{7.5 points})
+
+Hint: You need to use mathematical induction. Additionally, you could partition \(A_k\) and \(G_k\) into the following form :
+
+\[
+A_k=\begin{bmatrix} 
+A_{k-1} & * \\ 
+* & *
+\end{bmatrix}, \quad
+G_k=\begin{bmatrix} 
+G_{k-1} & * \\ 
+* & *
+\end{bmatrix}
+\]
+
+
+\bigskip
+
+\end{enumerate}
+
+
+
+\end{document}
