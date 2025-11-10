@@ -1,0 +1,316 @@
+\documentclass[english,onecolumn]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage[colorlinks]{hyperref}
+\usepackage{color,xcolor}
+\usepackage{amsthm,amssymb,amsfonts,amsmath}
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+% for matlab code highlight
+% load package with ``framed'' and ``numbered'' option.
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+
+\providecommand{\U}[1]{\protect\rule{.1in}{.1in}}
+\topmargin            -18.0mm
+\textheight           226.0mm
+\oddsidemargin      -4.0mm
+\textwidth            166.0mm
+\def\baselinestretch{1.5}
+
+
+
+
+% math operator macros
+\newcommand{\madj}{\mathop{\mathrm{adj}}}
+\newcommand{\trace}{\mathop{\mathrm{tr}}}
+
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert} 
+\DeclarePairedDelimiter{\pnorm}{\lVert}{\rVert_p}
+
+
+
+% special letters
+\newcommand{\x}{{\mathbf{x}}} % vector x
+\newcommand{\y}{{\mathbf{y}}} % vector y
+\newcommand{\z}{{\mathbf{z}}} % vector z
+\newcommand{\0}{{\mathbf{0}}} % zero vector
+
+\newcommand{\A}{{\mathbf{A}}} % matrix A
+\newcommand{\B}{{\mathbf{B}}} % matrix B
+\newcommand{\matC}{{\mathbf{C}}} % matrix C
+\newcommand{\matD}{{\mathbf{D}}} % matrix D
+\newcommand{\matE}{{\mathbf{E}}} % matrix E
+\newcommand{\matH}{{\mathbf{H}}} % matrix H
+\newcommand{\matK}{{\mathbf{K}}} % matrix K
+\newcommand{\X}{{\mathbf{X}}} % matrix X
+\newcommand{\Y}{{\mathbf{Y}}} % matrix Y
+\newcommand{\Z}{{\mathbf{Z}}} % matrix Z
+\newcommand{\M}{{\mathbf{M}}} % matrix M
+\newcommand{\I}{{\mathbf{I}}} % identity matrix
+
+\newcommand{\calV}{{\mathcal{V}}} % subspace V
+\newcommand{\calU}{{\mathcal{U}}} % subspace U
+\newcommand{\calS}{{\mathcal{S}}} % subspace S
+\newcommand{\calM}{{\mathcal{M}}} % subspace M
+\newcommand{\calN}{{\mathcal{N}}} % subspace N
+\newcommand{\calR}{\mathop{\mathcal{R}}} % range
+\renewcommand{\calN}{\mathop{\mathcal{N}}} % nullspace
+
+% number fields
+\newcommand{\R}{\mathbb{R}} % real numbers
+\newcommand{\C}{\mathbb{C}} % complex numbers
+
+\newcommand{\bigO}{{\mathcal{O}}} % big-Oh notation
+
+
+
+
+
+
+
+
+
+\begin{document}
+
+\begin{center}
+	\textbf{\LARGE{SI231B: Matrix Computations, 2025 Fall}}\\
+	{\Large Homework Set \#2}\\
+	% \texttt{Prof. Jie Lu}
+\par\end{center}
+
+\noindent
+\rule{\linewidth}{0.4pt}
+% \noindent
+% \rule{\linewidth}{0.4pt}
+{\bf Acknowledgements:}
+\begin{enumerate}
+	\item Deadline: {\bf \textcolor{red}{2025-11-15 23:59:59}}
+    \item Please submit the PDF file to \hyperlink{https://www.gradescope.com/}{gradescope}. Course entry code: N2382J.
+    \item You have 5 ``free days'' in total for all late homework submissions.
+    \item If your homework is handwritten, please make it clear and legible.
+    \item All your answers are required to be in English. 
+    \item Write down the major steps for deriving the solution; otherwise you may loss points.
+\end{enumerate}
+\rule{\linewidth}{0.4pt}
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 1. (Discrete-Time LTI Systems)} (\textcolor{blue}{20 points})
+
+\begin{enumerate}
+In wireless communication systems (such as 4G, 5G, and WiFi), multipath fading is one of the core challenges. Wireless signals propagate from the transmitter to the receiver through multiple paths (e.g., line-of-sight, reflection, diffraction), and signals from different paths superimpose at the receiver, leading to delay spread and amplitude fading of the received signal. To accurately demodulate and decode the signal, the receiver first needs to estimate the impulse response of the multipath channel (i.e., the unit impulse response of a discrete-time LTI system)
+\[
+h[n] = [h_0, h_1, \dots, h_p]
+\]
+where \( p \) denotes the number of multipaths.
+
+In practical systems, the transmitter sends a known training sequence
+\[
+x[n] = [x_0, x_1, \dots, x_{T-1}]
+\]
+and the received signal observed at the receiver
+\[
+y[n] = [y_0, y_1, \dots, y_{T-1}]
+\]
+is the convolution of the training sequence and the multipath channel impulse response, superimposed with noise
+\[
+v[n] = [v_0, v_1, \dots, v_{T-1}]
+\]
+At this point, the channel estimation problem can be modeled as the matrix equation shown below:
+\[
+\mathbf{y} = \mathbf{A}\mathbf{x} + \mathbf{v}
+\]
+where:
+ \( \mathbf{A} \) is a cyclic convolution matrix (Toeplitz matrix) constructed from the channel impulse response \( h_0, h_1, \dots, h_p \);\\
+ \( \mathbf{x} \) is the known training sequence;\\
+ \( \mathbf{y} \) is the received observation signal;\\
+ \( \mathbf{v} \) is additive noise (e.g., thermal noise, interference noise).
+
+By solving this matrix equation, the channel impulse response \( h[n] \) can be obtained, providing a key basis for subsequent signal processing operations such as demodulation and equalization.\\
+For a discrete-time Linear Time-Invariant (LTI) system, the convolution output \( y[n] \) of the input sequence \( x[n] \) and the unit impulse response \( h[n] = [h_0, h_1, \dots, h_p] \) is given by:
+\[
+y[n] = x[n] * h[n] = \sum_{k=0}^{p} h[k] \cdot x[n-k] \quad (n = 0, 1, \dots, T-1)
+\]
+where:
+ \( p \) denotes the number of multipaths of the system (or the length of the impulse response);\\
+ \( T \) is the length of the observation sequence;\\
+ The notation \( x[n-k] = 0 \) if \( n-k < 0 \) or \( n-k \geq \text{length of } x[n] \) (due to the causality of the LTI system and the finite length of the input sequence).\\
+
+
+
+\item Assume \( p = 2 \), \( \boldsymbol{x}[n] = [ 1, 0, 1, 0, 1, 1, 0, 1] \), and \( \boldsymbol{y}[n] = [1, 2, 4, 2, 4, 3, 5, 4] \). In the absence of noise, list \( \boldsymbol{y} = A\boldsymbol{x} \) and solve for \( A \).
+(\textcolor{blue}{10 points})
+
+\item Assume \( p = 2 \), \( \boldsymbol{x}[n] = [1, 0, 1, 0, 1, 1, 0, 1] \), and \( \boldsymbol{y}[n] = [1, 2, 4, 2, 4, 3, 5, 4] \). Solve for \( \hat{\boldsymbol{h}} \) by minimizing the error \( \|\boldsymbol{y} - \mathbf{C}\hat{\boldsymbol{h}}\|^2 \), where the convolution matrix \( \mathbf{C} \) is composed of \( \boldsymbol{x}[n] \), and \( \hat{\boldsymbol{h}} \) is the unknown impulse response to be estimated.
+(\textcolor{blue}{10 points})
+
+
+
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\bigskip
+
+\noindent{\bf Solution:}
+\begin{enumerate}
+
+
+
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 2. (Gram-Schmidt Procedure)} (\textcolor{blue}{27 points}) 
+
+Given the following matrices: 
+    $$\mathbf{A}_1 = \begin{bmatrix} 1 & 0 & 3 \\ 1 & 2 & 1 \\ 1 & 1 & 1 \\ 1 & 1 & 1 \end{bmatrix},\mathbf{A}_2 =  \begin{bmatrix} 1 & 0 & 3 & 1  \\ 1 & 1 & 4 & 1  \\ 0 & 0 & 0 & 1  \\ 0 & 1 & 1 & 0  \\ 1 & 1 & 4 & 1  \\ 1 & 0 & 3 & 0  \end{bmatrix},\mathbf{b} =\begin{bmatrix}
+        4 \\0\\4\\0
+    \end{bmatrix} $$
+\begin{enumerate}
+    \item Apply the Gram-Schmidt procedure to find the QR decomposition of the matrix $\mathbf{A}_1$ with $\mathbf{Q}\in\mathbb{R}^{4\times 3}$ and $\mathbf{R}\in\mathbb{R}^{3\times 3}$.  (\textcolor{blue}{6 points}) 
+    \item Apply the Modified Gram-Schmidt procedure to find the QR decomposition of the matrix $\mathbf{A}_1$ with $\mathbf{Q}\in\mathbb{R}^{4\times 3}$  and $\mathbf{R}\in\mathbb{R}^{3\times 3}$. (\textcolor{blue}{7 points}) 
+    \item Apply the General Gram-Schmidt procedure to find the QR decomposition of the matrix $\mathbf{A}_2$  with $\mathbf{Q}\in\mathbb{R}^{6\times 3}$ and $\mathbf{R}\in\mathbb{R}^{3\times 4}$. (\textcolor{blue}{7 points}) 
+    \item  Determine the least-squares solution for $A_1\mathbf{x}=\mathbf{b}$ using Gram-Schmidt  QR decomposition. (\textcolor{blue}{7 points}) 
+\end{enumerate}
+
+\bigskip
+
+\noindent \textbf{Solution:}
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 3. (Householder Reflection)} \hfill (\textcolor{blue}{15 points}) 
+
+Given the following matrix:
+$$\mathbf{A} =\begin{bmatrix}
+    1&1&-3 \\ -2&-5&20 \\ 2&8&3 
+\end{bmatrix}$$
+\begin{enumerate}
+    \item Use Householder reflection to find an orthonormal basis for $\mathcal{R}({\mathbf{A}_1})$. Note that the sign in the expression of $\mathbf{v} =\mathbf{x} \mp||\mathbf{x}||_2 \mathbf{e}_1$ is determined to be the one that maximizes $||\mathbf{v}||_2$. (\textcolor{blue}{10 points})
+    \item Use the conclusion from  1) to calculate the inverse of \(\boldsymbol{A}^\top \boldsymbol{A}\). \textcolor{blue}{(5 points)}
+\end{enumerate}
+
+\bigskip
+
+\noindent \textbf{Solution:}
+
+
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 4. (Givens Rotation) } (\textcolor{blue}{10 points})
+
+Consider 
+\[
+\boldsymbol{A} = \begin{bmatrix}
+1 & 2 & 2 \\
+0 & 1 & 0 \\
+0 & 2 & 2 \\
+2 & 3 & 5 
+\end{bmatrix}
+\]
+
+\begin{enumerate}
+     Perform a sequence of Givens rotations to decompose \(\boldsymbol{A}\) into \(\boldsymbol{A} = \boldsymbol{Q}\boldsymbol{R}\), where \(\boldsymbol{R}\) is  upper triangular  and \(\boldsymbol{Q}\) is  orthogonal 
+     . \textcolor{blue}{(10 points)}
+\end{enumerate}
+
+\bigskip
+
+
+\noindent \textbf{Solution:}
+
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 5. (QR decomposition)} (\textcolor{blue}{8 points})
+
+
+
+\begin{enumerate}
+
+
+Show that if \( A \in \mathbb{R}^{n \times n} \) and \( \mathbf{a}_i = A(:, i) \), then
+\[
+|\det(A)| \leq \|\mathbf{a}_1\|_2 \cdots \|\mathbf{a}_n\|_2.
+\]
+(\textcolor{blue}{8 points})
+
+
+
+\bigskip
+
+\end{enumerate}
+
+\noindent{\bf Solution:}
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 6. (The Application of QR Decomposition)} \hfill (\textcolor{blue}{20 points})
+
+Let $ A \in \mathbb{R}^{m \times n} $ with $ m \geq n $ be partitioned as
+\[
+A = \begin{bmatrix} A_1 \\ A_2 \end{bmatrix},
+\]
+where $ A_1 \in \mathbb{R}^{n \times n} $ is nonsingular and $ A_2 \in \mathbb{R}^{(m-n) \times n} $. 
+
+\begin{enumerate}
+    \item Express the pseudoinverse $A^{\dag}$ using $\mathbf{Q,R}$. (\textcolor{blue}{10 points})
+    \item Prove that the spectral norm (i.e., 2-norm) of $A^{\dag}$ satisfies:
+\[
+\|A^{\dag}\|_2 \leq \|A_1^{-1}\|_2.
+\] (\textcolor{blue}{10 points})
+\end{enumerate}
+(Hint: use the Thin QR Decomposition to express $A$ as $A=QR$. The following intermediate results, derived from the orthogonality of $\mathbf{Q}$, may be used: (a) $||\mathbf{Q}^T||_2=1$. (b) Let $\mathbf{Q} = \begin{bmatrix}
+    \mathbf{Q}_1 \\ \mathbf{Q}_2
+\end{bmatrix}$ with $\mathbf{Q}_1\in\mathbb{R}^{n\times n}, \mathbf{Q}_2\in\mathbb{R}^{(m-n)\times n}$. Note that the partitined matrix satisfy $\mathbf{Q}_1^T \mathbf{Q}_1=\mathbf{I}_n-\mathbf{Q}_2^T \mathbf{Q}_2$. Since $\mathbf{Q}_2^T \mathbf{Q}_2\succeq\mathbf{0}$ (positive semi-definite), it follows that $\mathbf{Q}_1^T \mathbf{Q}_1\preceq\mathbf{I}$, i.e.  $\mathbf{Q}_1^T \mathbf{Q}_1-\mathbf{I}$ is negative semi-definite, which implies $||\mathbf{Q}_1||_2\le 1$.) 
+
+
+
+
+\bigskip
+
+\noindent \textbf{Solution:}
+
+
+
+
+\end{document}
