@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.11.4)  15 NOV 2025 11:27
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.11.4)  15 NOV 2025 15:44
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -156,8 +156,7 @@ File: l3backend-xetex.def 2024-05-08 L3 backend support: XeTeX
 \l__pdf_internal_box=\box57
 \g__pdf_backend_annotation_int=\count284
 \g__pdf_backend_link_int=\count285
-)
-No file homework_2.aux.
+) (./homework_2.aux)
 \openout1 = `homework_2.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 56.
@@ -176,7 +175,7 @@ LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 56.
 LaTeX Font Info:    ... okay on input line 56.
 LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 56.
 LaTeX Font Info:    ... okay on input line 56.
-(/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/graphicx.sty
+ (/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/graphicx.sty
 Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
  (/usr/local/texlive/2025/texmf-dist/tex/latex/graphics/graphics.sty
 Package: graphics 2024/08/06 v1.4g Standard LaTeX Graphics (DPC,SPQR)
@@ -222,66 +221,38 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 [9]
 
 [10]
-Overfull \hbox (15.32013pt too wide) detected at line 674
-\OML/cmm/m/it/10 A[] \OT1/cmr/m/n/10 = [] [] = []
- []
-
-
-Overfull \hbox (34.20906pt too wide) detected at line 697
+Overfull \hbox (15.32013pt too wide) detected at line 680
 \OML/cmm/m/it/10 A[] \OT1/cmr/m/n/10 = [] [] = []
  []
 
 
 
 [11]
+Overfull \hbox (34.20906pt too wide) detected at line 703
+\OML/cmm/m/it/10 A[] \OT1/cmr/m/n/10 = [] [] = []
+ []
+
+
 
 [12]
-Overfull \hbox (3.84082pt too wide) in paragraph at lines 786--788
-\TU/lmr/m/n/10 Since $[]\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 Q[]\OT1/cmr/m/n/10 ) = [](\OML/cmm/m/it/10 Q\OT1/cmr/m/n/10 )$\TU/lmr/m/n/10 , this gives $\OT1/cmr/m/n/10 ([](\OML/cmm/m/it/10 Q\OT1/cmr/m/n/10 ))[] = 1$\TU/lmr/m/n/10 , which implies $\OMS/cmsy/m/n/10 j []\OT1/cmr/m/n/10 (\OML/cmm/m/it/10 Q\OT1/cmr/m/n/10 )\OMS/cmsy/m/n/10 j \OT1/cmr/m/n/10 =
- []
-
-
 
 [13]
-Overfull \hbox (2.03pt too wide) in paragraph at lines 836--838
-\TU/lmr/m/n/10 Taking the square root of both sides (and knowing norms are non-negative): 
- []
-
-
 
 [14]
 
-[15]
-
-LaTeX Warning: Reference `eq:1' on page 16 undefined on input line 937.
-
-
-LaTeX Warning: Reference `eq:2' on page 16 undefined on input line 937.
-
-
-
-[16]
-
-[17] (./homework_2.aux)
+[15] (./homework_2.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
  ***********
-
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
- 3651 strings out of 473832
- 56516 string characters out of 5729481
- 471872 words of memory out of 5000000
- 26678 multiletter control sequences out of 15000+600000
- 567116 words of font info for 78 fonts, out of 8000000 for 9000
+ 3642 strings out of 473832
+ 56380 string characters out of 5729481
+ 468865 words of memory out of 5000000
+ 26670 multiletter control sequences out of 15000+600000
+ 566188 words of font info for 75 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  57i,13n,65p,557b,217s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on homework_2.pdf (17 pages).
+Output written on homework_2.pdf (15 pages).

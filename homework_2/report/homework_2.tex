@@ -348,7 +348,8 @@ r_{33} = \|\mathbf{v}_3\|_2 = 1
 
 \newpage
 
-\subsection*{2) QR Decomposition of $\mathbf{A}_1$ (Modified Gram-Schmidt)}
+\subsection*{2)}
+\textbf{Solution.}
 
 \textbf{Initialization}
 Let $\mathbf{v}_1 = \mathbf{a}_1, \mathbf{v}_2 = \mathbf{a}_2, \mathbf{v}_3 = \mathbf{a}_3$.
@@ -379,7 +380,8 @@ Update $\mathbf{v}_3$:
 \end{bmatrix}
 \]
 
-\subsection*{3) QR Decomposition of $\mathbf{A}_2$}
+\subsection*{3)}
+\textbf{Solution.}
 
 Given $\mathbf{A}_2 = [\mathbf{a}_1, \mathbf{a}_2, \mathbf{a}_3, \mathbf{a}_4]$ with rank 3. We compute $\mathbf{Q} \in \mathbb{R}^{6 \times 3}$ and $\mathbf{R} \in \mathbb{R}^{3 \times 4}$.
 
@@ -417,6 +419,7 @@ Since $\mathbf{v}_3 = \mathbf{a}_3 - 7\mathbf{q}_1 - \sqrt{2}\mathbf{q}_2 = \mat
 \]
 
 \subsection*{4)}
+\textbf{Solution.}
 
 Since $A = QR, \quad Ax = b$,
 we can easily get $\mathbf{R}\mathbf{x} = \mathbf{Q}^T\mathbf{b}$:
@@ -452,6 +455,7 @@ Solving the system:
 \section*{Problem 3. (Householder Reﬂection)}
 
 \subsection*{1)}
+\textbf{Solution.}
 
 \textbf{Step 1: First Householder Reflection ($H_1$)}
 
@@ -584,6 +588,7 @@ $$ \left\{ \vect{q}_1, \vect{q}_2, \vect{q}_3 \right\} = \left\{ \frac{1}{3}
 \end{bmatrix} \right\} $$
 
 \subsection*{2)}
+\textbf{Solution.}
 
 $$ A^T A = (QR)^T (QR) = R^T Q^T Q R = R^T R $$
 Therefore:
@@ -623,6 +628,7 @@ $$ (A^T A)^{-1} = \frac{1}{12321}
 \end{bmatrix} $$
 
 \section*{Problem 4. (Givens Rotation)}
+\textbf{Solution.}
 
 \textbf{Step 1: Zero out A(4, 1)}
 
@@ -759,61 +765,43 @@ $$ Q =
 $$
 
 \section*{Problem 5. (QR decomposition)}
+\textbf{Proof.}
 
-This inequality is known as \textbf{Hadamard's inequality}. We will prove it using the QR decomposition, as suggested by the problem context.
-
-\begin{enumerate}
-\item \textbf{QR Decomposition} \\
 Let $A = QR$ be the QR decomposition of the (square) matrix $A$.
-\begin{itemize}
-\item $Q$ is an $n \times n$ orthogonal matrix, which means $Q^T Q = I$ and $Q^{-1} = Q^T$.
-\item $R$ is an $n \times n$ upper triangular matrix.
-\end{itemize}
 
-\item \textbf{Determinant of A} \\
-We begin by taking the absolute value of the determinant of $A$:
+Then, we can get that:
 $$
 |\det(A)| = |\det(QR)| = |\det(Q) \det(R)| = |\det(Q)| |\det(R)|
 $$
 
-\item \textbf{Determinant of Q} \\
-Since $Q$ is orthogonal, we know $Q^T Q = I$. Taking the determinant of both sides:
-$$
-\det(Q^T Q) = \det(I)
-$$
-$$
-\det(Q^T) \det(Q) = 1
-$$
-Since $\det(Q^T) = \det(Q)$, this gives $(\det(Q))^2 = 1$, which implies $|\det(Q)| = 1$.
+Since $Q$ is orthogonal matrix, we have that $|\det(Q)| = 1$
 
-\item \textbf{Simplifying the Determinant} \\
-Substituting $|\det(Q)| = 1$ back into our equation from Step 2, we get:
+Thus,
 $$
 |\det(A)| = 1 \cdot |\det(R)| = |\det(R)|
 $$
 
-\item \textbf{Determinant of R} \\
 Since $R$ is an upper triangular matrix, its determinant is the product of its diagonal entries. Let $r_{ii}$ be the diagonal entries of $R$.
 $$
 \det(R) = r_{11} r_{22} \cdots r_{nn}
 $$
+
 Therefore,
 $$
 |\det(A)| = |r_{11} r_{22} \cdots r_{nn}| = |r_{11}| |r_{22}| \cdots |r_{nn}|
 $$
 
-\item \textbf{Relating $R$ to $A$'s Columns} \\
 From $A = QR$, we can look at the $i$-th column of $A$, which is $\mathbf{a}_i$. This column is the result of $Q$ multiplying the $i$-th column of $R$, which we will call $\mathbf{r}_i$.
 $$
 \mathbf{a}_i = Q \mathbf{r}_i
 $$
-Now, let's find the 2-norm (Euclidean length) of $\mathbf{a}_i$. Because $Q$ is an orthogonal matrix, it preserves the 2-norm (i.e., it is an isometry).
+
+Thus,
 $$
-\|\mathbf{a}_i\|_2^2 = \mathbf{a}_i^T \mathbf{a}_i = (Q \mathbf{r}_i)^T (Q \mathbf{r}_i) = \mathbf{r}_i^T Q^T Q \mathbf{r}_i = \mathbf{r}_i^T I \mathbf{r}_i = \mathbf{r}_i^T \mathbf{r}_i = \|\mathbf{r}_i\|_2^2
+\|\mathbf{a}_i\|_2^2 = \mathbf{a}_i^T \mathbf{a}_i = (Q \mathbf{r}_i)^T (Q \mathbf{r}_i) = \mathbf{r}_i^T Q^T Q \mathbf{r}_i = \mathbf{r}_i^T \mathbf{r}_i = \|\mathbf{r}_i\|_2^2
 $$
 Thus, $\|\mathbf{a}_i\|_2 = \|\mathbf{r}_i\|_2$.
 
-\item \textbf{Norm of $R$'s Columns} \\
 Because $R$ is upper triangular, its $i$-th column $\mathbf{r}_i$ only has non-zero entries in the first $i$ positions.
 $$
 \mathbf{r}_i =
@@ -822,78 +810,56 @@ $$
 $$
 The squared norm of $\mathbf{r}_i$ is the sum of the squares of its components:
 $$
-\|\mathbf{r}_i\|_2^2 = |r_{1i}|^2 + |r_{2i}|^2 + \cdots + |r_{ii}|^2
+\|\mathbf{r
+}_i\|_2^2 = |r_{1i}|^2 + |r_{2i}|^2 + \cdots + |r_{ii}|^2
 $$
 
-\item \textbf{The Key Inequality} \\
-From Step 6 and Step 7, we can equate the squared norms:
+Since $\|\mathbf{a}_i\|_2 = \|\mathbf{r}_i\|_2$, we have:
 $$
 \|\mathbf{a}_i\|_2^2 = |r_{1i}|^2 + |r_{2i}|^2 + \cdots + |r_{ii}|^2
 $$
-Since all the terms in the sum are non-negative (as they are squares), this sum must be greater than or equal to any single term in it. In particular, it must be greater than or equal to the last non-zero term, $|r_{ii}|^2$.
+
+Thus,
 $$
 \|\mathbf{a}_i\|_2^2 \ge |r_{ii}|^2
 $$
-Taking the square root of both sides (and knowing norms are non-negative):
+Taking the square root of both sides:
 $$
 \|\mathbf{a}_i\|_2 \ge |r_{ii}|
 $$
-This holds for all $i = 1, \ldots, n$.
 
-\item \textbf{Final Assembly} \\
-We now return to our determinant equation from Step 5 and apply the inequality from Step 8 for each term in the product.
+Above all,
 $$
-|\det(A)| = |r_{11}| |r_{22}| \cdots |r_{nn}|
+|\det(A)| = |r_{11}| |r_{22}| \cdots |r_{nn}| \le \|\mathbf{a}_1\|_2 \|\mathbf{a}_2\|_2 \cdots \|\mathbf{a}_n\|_2
 $$
-Since $\|\mathbf{a}_1\|_2 \ge |r_{11}|$, $\|\mathbf{a}_2\|_2 \ge |r_{22}|$, and so on, we can substitute them:
-$$
-|\det(A)| \le \|\mathbf{a}_1\|_2 \|\mathbf{a}_2\|_2 \cdots \|\mathbf{a}_n\|_2
-$$
-
-\end{enumerate}
 
 This completes the proof.
-\hfill $\Box$
 
 \section*{Problem 6. (The Application of QR Decomposition)}
 \subsection*{1)}
+\textbf{Proof.}
 
-We are given $A \in \mathbb{R}^{m \times n}$ with $m \ge n$. We are also given that the $n \times n$ submatrix $A_1$ is nonsingular. This implies that $A$ has full column rank, i.e., $\text{rank}(A) = n$.
+Since $A_1$ is nonsingular, it is obviously that $A$ has full column rank, i.e., $\text{rank}(A) = n$.
 
-For a matrix $A$ with full column rank, the pseudoinverse (or left inverse) $A^\dagger$ is given by the formula:
+For a matrix $A$ with full column rank, the pseudoinverse $A^\dagger$ is given by the formula:
 $$
 A^\dagger = (A^T A)^{-1} A^T
 $$
-We are instructed to use the Thin QR Decomposition, $A = QR$, where $Q \in \mathbb{R}^{m \times n}$ has orthonormal columns and $R \in \mathbb{R}^{n \times n}$ is upper triangular. The property of $Q$ having orthonormal columns means that $Q^T Q = I_n$, where $I_n$ is the $n \times n$ identity matrix.
 
-Since $A_1$ is nonsingular, $A$ has full column rank, which implies that $R$ is also nonsingular (invertible).
+Since $A_1$ is nonsingular, $A$ has full column rank, which implies that $R$ is also nonsingular.
 
-Now, we substitute $A = QR$ into the formula for $A^\dagger$:
 \begin{align*}
 A^\dagger &= \left( (QR)^T (QR) \right)^{-1} (QR)^T \\
 &= \left( R^T Q^T Q R \right)^{-1} (R^T Q^T) \\
-\end{align*}
-Since $Q^T Q = I_n$, the expression simplifies:
-\begin{align*}
-A^\dagger &= \left( R^T (I_n) R \right)^{-1} (R^T Q^T) \\
 &= \left( R^T R \right)^{-1} (R^T Q^T) \\
-\end{align*}
-Using the property $(AB)^{-1} = B^{-1} A^{-1}$ for invertible matrices $A$ and $B$:
-\begin{align*}
-A^\dagger &= \left( R^{-1} (R^T)^{-1} \right) (R^T Q^T) \\
-\end{align*}
-The $(R^T)^{-1}$ and $R^T$ terms cancel out, as $(R^T)^{-1} R^T = I_n$:
-\begin{align*}
-A^\dagger &= R^{-1} \left( (R^T)^{-1} R^T \right) Q^T \\
-&= R^{-1} (I_n) Q^T \\
+&= \left( R^{-1} (R^T)^{-1} \right) (R^T Q^T) \\
 &= R^{-1} Q^T
 \end{align*}
 
-\noindent\textbf{The pseudoinverse is $A^\dagger = R^{-1} Q^T$.}
+\textbf{The pseudoinverse is $A^\dagger = R^{-1} Q^T$.}
 
 \subsection*{2)}
-
-We will use the result from Part 1, the partitioning of $A$ and $Q$, and the properties given in the hint.
+\textbf{Proof.}
 
 From the partitioning, we have $A =
 \begin{bmatrix} A_1 \\ A_2
@@ -902,7 +868,7 @@ From the partitioning, we have $A =
 \end{bmatrix} R$.
 This implies $A_1 = Q_1 R$.
 
-Since $A_1$ is nonsingular (given) and $R$ is nonsingular (from Part 1), $Q_1$ must also be nonsingular. We can therefore write:
+Thus,
 $$
 R = Q_1^{-1} A_1
 $$
@@ -910,37 +876,16 @@ Inverting this gives:
 $$
 R^{-1} = (Q_1^{-1} A_1)^{-1} = A_1^{-1} (Q_1^{-1})^{-1} = A_1^{-1} Q_1
 $$
-Now, let's start with the expression for $A^\dagger$ from Part 1 and find its spectral norm (2-norm):
-$$
-\|A^\dagger\|_2 = \|R^{-1} Q^T\|_2
-$$
-Using the submultiplicative property of matrix norms ($\|XY\|_2 \le \|X\|_2 \|Y\|_2$):
-$$
-\|A^\dagger\|_2 \le \|R^{-1}\|_2 \cdot \|Q^T\|_2
-$$
-The hint provides as property (a) that $\|Q^T\|_2 = 1$. Substituting this, we get:
-\begin{equation}
-\|A^\dagger\|_2 \le \|R^{-1}\|_2 \label{eq:1}
-\end{equation}
-Now, let's use the expression we found for $R^{-1}$ in terms of $A_1$ and $Q_1$:
-$$
-\|R^{-1}\|_2 = \|A_1^{-1} Q_1\|_2
-$$
-Again, using the submultiplicative property:
-$$
-\|R^{-1}\|_2 \le \|A_1^{-1}\|_2 \cdot \|Q_1\|_2
-$$
-The problem's hint provides that $\|Q_1\|_2 \le 1$. Substituting this, we get:
-\begin{equation}
-\|R^{-1}\|_2 \le \|A_1^{-1}\|_2 \cdot 1 = \|A_1^{-1}\|_2 \label{eq:2}
-\end{equation}
-Finally, we combine inequalities \eqref{eq:1} and \eqref{eq:2}:
-$$
-\|A^\dagger\|_2 \le \|R^{-1}\|_2 \quad \text{and} \quad \|R^{-1}\|_2 \le \|A_1^{-1}\|_2
-$$
-By transitivity, this proves the desired result:
-$$
-\|A^\dagger\|_2 \le \|A_1^{-1}\|_2
-$$
 
+Then, focus on the $A^\dagger$
+\begin{align*}
+\|A^\dagger\|_2 &= \|R^{-1} Q^T\|_2  \\
+&\le \|R^{-1}\|_2 \cdot \|Q^T\|_2 \\
+&= \|R^{-1}\|_2 \label{eq:1} \\
+&= \|A_1^{-1} Q_1\|_2 \\
+&\le \|A_1^{-1}\|_2 \cdot \|Q_1\|_2 \\
+&= \|A_1^{-1}\|_2
+\end{align*}
+
+This completes the proof.
 \end{document}
