@@ -1,0 +1,268 @@
+\documentclass[english,onecolumn]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage[colorlinks]{hyperref}
+\usepackage{color,xcolor}
+\usepackage{amsthm,amssymb,amsfonts,amsmath}
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+% for matlab code highlight
+% load package with ``framed'' and ``numbered'' option.
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+
+\providecommand{\U}[1]{\protect\rule{.1in}{.1in}}
+\topmargin            -18.0mm
+\textheight           226.0mm
+\oddsidemargin      -4.0mm
+\textwidth            166.0mm
+\def\baselinestretch{1.5}
+
+
+
+
+% math operator macros
+\newcommand{\madj}{\mathop{\mathrm{adj}}}
+\newcommand{\trace}{\mathop{\mathrm{tr}}}
+
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert} 
+\DeclarePairedDelimiter{\pnorm}{\lVert}{\rVert_p}
+
+
+
+% special letters
+\newcommand{\x}{{\mathbf{x}}} % vector x
+\newcommand{\y}{{\mathbf{y}}} % vector y
+\newcommand{\z}{{\mathbf{z}}} % vector z
+\newcommand{\0}{{\mathbf{0}}} % zero vector
+
+\newcommand{\A}{{\mathbf{A}}} % matrix A
+\newcommand{\B}{{\mathbf{B}}} % matrix B
+\newcommand{\matC}{{\mathbf{C}}} % matrix C
+\newcommand{\matD}{{\mathbf{D}}} % matrix D
+\newcommand{\matE}{{\mathbf{E}}} % matrix E
+\newcommand{\matH}{{\mathbf{H}}} % matrix H
+\newcommand{\matK}{{\mathbf{K}}} % matrix K
+\newcommand{\X}{{\mathbf{X}}} % matrix X
+\newcommand{\Y}{{\mathbf{Y}}} % matrix Y
+\newcommand{\Z}{{\mathbf{Z}}} % matrix Z
+\newcommand{\M}{{\mathbf{M}}} % matrix M
+\newcommand{\I}{{\mathbf{I}}} % identity matrix
+
+\newcommand{\calV}{{\mathcal{V}}} % subspace V
+\newcommand{\calU}{{\mathcal{U}}} % subspace U
+\newcommand{\calS}{{\mathcal{S}}} % subspace S
+\newcommand{\calM}{{\mathcal{M}}} % subspace M
+\newcommand{\calN}{{\mathcal{N}}} % subspace N
+\newcommand{\calR}{\mathop{\mathcal{R}}} % range
+\renewcommand{\calN}{\mathop{\mathcal{N}}} % nullspace
+
+% number fields
+\newcommand{\R}{\mathbb{R}} % real numbers
+\newcommand{\C}{\mathbb{C}} % complex numbers
+
+\newcommand{\bigO}{{\mathcal{O}}} % big-Oh notation
+
+
+
+
+
+
+
+
+
+\begin{document}
+
+\begin{center}
+	\textbf{\LARGE{SI231B: Matrix Computations, 2025 Fall}}\\
+	{\Large Homework Set \#3}\\
+	% \texttt{Prof. Jie Lu}
+\par\end{center}
+
+\noindent
+\rule{\linewidth}{0.4pt}
+% \noindent
+% \rule{\linewidth}{0.4pt}
+{\bf Acknowledgements:}
+\begin{enumerate}
+	\item Deadline: {\bf \textcolor{red}{2025-11-29 23:59:59}}
+    \item Please submit the PDF file to \hyperlink{https://www.gradescope.com/}{gradescope}. Course entry code: N2382J.
+    \item You have 5 ``free days'' in total for all late homework submissions.
+    \item If your homework is handwritten, please make it clear and legible.
+    \item All your answers are required to be in English. 
+    \item Write down the major steps for deriving the solution; otherwise you may loss points.
+\end{enumerate}
+\rule{\linewidth}{0.4pt}
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 1. (Eigenvalue)} (\textcolor{blue}{15 points})
+
+\begin{enumerate}
+Let \( \mathbf{A} \in \mathbb{R}^{3 \times 3} \) be a real symmetric matrix satisfying the matrix equation \( \mathbf{A}^3 - 2\mathbf{A}^2 - \mathbf{A} + 2\mathbf{I} = \mathbf{0} \).
+
+
+\item Find all eigenvalues of matrix \( \mathbf{A} \).
+(\textcolor{blue}{10 points})
+
+\item Compute \( \det(\mathbf{A} + \mathbf{I}) \).(\textcolor{blue}{5 points})
+
+
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\bigskip
+
+\noindent{\bf Solution:}
+
+
+
+
+
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 2. (Eigenvector and similarity)} (\textcolor{blue}{15 points}) 
+
+
+\begin{enumerate}
+\item Let \( \mathbf{A} \in \mathbb{R}^{n \times n} \) have two distinct eigenvalues \( \lambda_1 \) and \( \lambda_2 \) with corresponding eigenvectors \( \boldsymbol{v}_1 \) and \( \boldsymbol{v}_2 \) respectively.\\
+Prove that: If \( k_1\boldsymbol{v}_1 + k_2\boldsymbol{v}_2 \) (where the scalars \( k_1, k_2 \) are not both zero) is an eigenvector of \( \mathbf{A} \), then \( k_1k_2 = 0 \).
+  (\textcolor{blue}{7 points}) 
+\item Suppose two matrices have the same characteristic polynomial,
+determinant, rank, nullity, trace, eigenvalues, algebraic multiplicity, geometric multiplicity. Are they similar? Justify your answer.
+(\textcolor{blue}{8 points})
+
+\end{enumerate}
+
+\bigskip
+
+\noindent \textbf{Solution:}
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 3. (Diagonalization)} \hfill (\textcolor{blue}{20 points}) 
+
+\begin{enumerate}
+\item Determine if each of the following matrices is diagonalizable.
+\[
+\mathbf{A} = \begin{bmatrix}
+    -2 & 1 & 1 \\ 
+    0 & 2 & 0 \\ 
+    -4 & 1 & 3 
+\end{bmatrix}, \quad
+\mathbf{B} = \begin{bmatrix}
+    2 & 4 & 0 \\ 
+    0 & 2 & 0 \\ 
+    0 & 5 & 2 
+\end{bmatrix}
+\]
+\textcolor{blue}{(10 points)}
+
+\item If it is diagonalizable, diagonalize the matrix using a similarity transformation. \textcolor{blue}{(5 points)}
+
+\item Compute \( \mathbf{A}^{100} \). \textcolor{blue}{(5 points)}
+\end{enumerate}
+
+\bigskip
+
+\noindent \textbf{Solution:}
+
+
+
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 4. (Schur Decomposition) } (\textcolor{blue}{20 points})
+
+\begin{enumerate}
+    \item Let 
+    \[
+    A = \begin{bmatrix} 
+    0 & 1 & 0 \\ 
+    0 & 0 & 1 \\ 
+    6 & -11 & 6 
+    \end{bmatrix}.
+    \]
+    Compute the real Schur decomposition \( A = U T U^T \), where \( U \) is a real orthogonal matrix and \( T \) is upper triangular. \textbf{The results are reported rounded to four decimal places.} (\textcolor{blue}{12 points})
+    \item Suppose \( A \in \mathbb{C}^{n \times n} \) has $n$ distinct eigenvalues. Show that if \( Q^{H} A Q = T \) is its Schur decomposition and \( AB = BA \), then \( Q^{H} B Q \) is upper triangular. (Hint: let \( T \in \mathbb{C}^{n \times n} \) be an upper triangular matrix whose diagonal entries \( t_{11}, \dots, t_{nn} \) are distinct. If \( C \in \mathbb{C}^{n \times n} \) satisfies \( TC = CT \), then \( C \) must be upper triangular.) (\textcolor{blue}{8 points})
+\end{enumerate}
+
+
+
+
+\bigskip
+
+
+\noindent \textbf{Solution:}
+
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 5. (Variational Characterizations)} (\textcolor{blue}{10 points})
+
+For  matrix $\A\in\mathbb{R}^{r\times r}$, prove $||\A||_2=\max_{||\z||_2=1} ||\A\z||_2=\max_{||\z||_2=||\y||_2=1} |\y^T\A\z|$. 
+
+
+\noindent{\bf Solution:}
+
+
+   
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 6. (Power Iteration)} \hfill (\textcolor{blue}{20 points})
+
+Consider 
+$$A=\begin{bmatrix}
+    2&1\\1&2
+\end{bmatrix},B=\begin{bmatrix}
+    2&3 \\ 1&4
+\end{bmatrix}.$$
+\begin{enumerate}
+    \item Apply the power method with infinite-norm normalization to each matrix (Compute only four steps), starting from the initial vector 
+$\mathbf{x}^{(0)} = \begin{bmatrix} -1 & 2 \end{bmatrix}^T$. Note: To implement the infinite-norm normalization, replace the normalization step $\mathbf{v}^{(k)} = \frac{\tilde{\mathbf{v}}^{(k)}}{\|\tilde{\mathbf{v}}^{(k)}\|_2}$ used in the slides with $\mathbf{v}^{(k)} = \frac{\tilde{\mathbf{v}}^{(k)}}{\|\tilde{\mathbf{v}}^{(k)}\|_\infty}$, where $\|\cdot\|_\infty$ denotes the infinity norm. $\mathbf{v}^{(k)}$ approximates a dominant eigenvector at iteration $k$ and $\lambda^{(k)} = (A\mathbf{v}^{(k)})^T\mathbf{v}^{(k)}/||\mathbf{v}^{(k)}||_2^2$. \textbf{The results are reported rounded to four decimal places.} (\textcolor{blue}{10 points})
+    \item Compute the ratios $\lambda_2/\lambda_1$ for $A$ and $B$, where $\lambda_1$ and $\lambda_2$ denote the eigenvalues of largest and second-largest magnitude, respectively. For which matrix do you expect faster convergence of the power method? Explain your reason. (\textcolor{blue}{10 points})
+\end{enumerate}
+\bigskip
+
+\noindent \textbf{Solution:}
+
+
+
+\end{document}
