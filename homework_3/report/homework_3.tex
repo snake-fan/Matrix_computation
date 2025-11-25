@@ -56,6 +56,54 @@
 \begin{document}
 \maketitle
 
-\section*{Problem 1. (Discrete-Time LTI Systems)}
+\section*{Problem 1. (Eigenvalue)}
+
+\subsection*{1)}
+
+\textbf{Solution.}
+
+Let $\lambda$ be an eigenvalue of the matrix $A$,
+and let $v$ be the corresponding eigenvector.
+Then, we have:
+$$ Av = \lambda v $$
+
+Since,
+$$
+P(A) = A^3 - 2A^2 - A + 2I = 0
+$$
+any eigenvalue $\lambda$ of $A$ must satisfy the corresponding scalar polynomial equation $P(\lambda) = 0$.
+
+Substituting $\lambda$ into the polynomial:
+$$
+\lambda^3 - 2\lambda^2 - \lambda + 2 = 0
+$$
+
+Then we can get that:
+\begin{align*}
+\lambda^2(\lambda - 2) - 1(\lambda - 2) &= 0 \\
+(\lambda^2 - 1)(\lambda - 2) &= 0 \\
+(\lambda - 1)(\lambda + 1)(\lambda - 2) &= 0
+\end{align*}
+
+Thus,
+$$\lambda_1 = 1, \quad \lambda_2 = -1, \quad \lambda_3 = 2$$
+
+Since $A$ is a $3 \times 3$ matrix, it has exactly 3 eigenvalues .
+Therefore, the eigenvalues of $A$ are:
+$$\lambda_1 = 1, \quad \lambda_2 = -1, \quad \lambda_3 = 2$$
+
+\subsection*{2)}
+
+\textbf{Solution.}
+
+Since the eigenvalues of $A$ are:
+$$\lambda_1 = 1, \quad \lambda_2 = -1, \quad \lambda_3 = 2$$
+we can get that the eigenvalues of $(A + I)$ are:
+$$\lambda_1' = 1 + 1=2, \quad \lambda_2' = -1 + 1 =0, \quad \lambda_3' = 2 + 1 = 3$$
+
+Thus,
+$$
+det(A + I) = \lambda_1' \cdot \lambda_2' \cdot \lambda_3' = 0
+$$
 
 \end{document}
