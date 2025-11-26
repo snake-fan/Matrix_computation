@@ -85,25 +85,40 @@ Then we can get that:
 (\lambda - 1)(\lambda + 1)(\lambda - 2) &= 0
 \end{align*}
 
-Thus,
-$$\lambda_1 = 1, \quad \lambda_2 = -1, \quad \lambda_3 = 2$$
+Thus,we can get that
+$$
+\lambda \in \{1, -1, 2\}
+$$
 
-Since $A$ is a $3 \times 3$ matrix, it has exactly 3 eigenvalues .
-Therefore, the eigenvalues of $A$ are:
-$$\lambda_1 = 1, \quad \lambda_2 = -1, \quad \lambda_3 = 2$$
+Then, we can get the $\lambda$ pairs:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|}
+  \hline
+  $\lambda_1$ & -1 & -1 & -1 & -1 & -1 & -1 & 1 & 1 & 1 & 2 \\
+  $\lambda_2$ & -1 & -1 & -1 & 1  & 1  & 2  & 1 & 1  & 2  & 2 \\
+  $\lambda_3$ & -1 & 1  & 2  & 1  & 2  & 2  & 1 & 2 & 2 & 2 \\
+  \hline
+\end{tabular}
+\caption{$\lambda$ pairs}
+\label{tab:basic_example}
+\end{table}
 
 \subsection*{2)}
 
 \textbf{Solution.}
 
 Since the eigenvalues of $A$ are:
-$$\lambda_1 = 1, \quad \lambda_2 = -1, \quad \lambda_3 = 2$$
+$$\lambda_1 = 1, \quad \lambda_2 = -1, \quad \lambda_3 \in \{-1, 1, 2\}$$
 we can get that the eigenvalues of $(A + I)$ are:
-$$\lambda_1' = 1 + 1=2, \quad \lambda_2' = -1 + 1 =0, \quad \lambda_3' = 2 + 1 = 3$$
+$$\lambda_1' = 1 + 1=2, \quad \lambda_2' = -1 + 1 =0, \quad \lambda_3' \in \{0, 2, 3\}$$
 
 Thus,
 $$
 det(A + I) = \lambda_1' \cdot \lambda_2' \cdot \lambda_3' = 0
 $$
+
+\section*{Problem 2. (Eigenvector and similarity)}
 
 \end{document}
