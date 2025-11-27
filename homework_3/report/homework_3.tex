@@ -121,4 +121,235 @@ $$
 
 \section*{Problem 2. (Eigenvector and similarity)}
 
+\subsection*{1)}
+
+\textbf{Solution.}
+
+Let $v_3$ be the eigenvector of A with corresponding eigenvalue $\lambda_3$.
+
+Then
+
+\begin{align*}
+Av_3 &= \lambda_3 v_3   \\
+A(k_1v_1 + k_2v_2)&=\lambda_3(k_1v_1+k_2v_2)    \\
+\lambda_1k_1v_1 + \lambda_2k_2v_2&=\lambda_3k_1v_1+\lambda_3k_2v_2) \\
+k_1(\lambda_1 - \lambda_3)v_1 + k_2(\lambda_2 - \lambda_3)v_2 &= 0
+\end{align*}
+
+Since $\lambda_1, \lambda_2$ are distince eigenvalue,
+we can get that $v_1,v_2$ are linearly independent.
+
+Thus,
+
+$$
+k_1(\lambda_1-\lambda_3) = 0, \quad k_2(\lambda_2 - \lambda_3) = 0
+$$
+
+If $k_1 \neq 0$, then $\lambda_1 = \lambda_3$.
+Since $\lambda_1 \neq \lambda_2$,
+we can get that $\lambda_3 \neq \lambda_2$.
+Thus $k_2$ = 0.
+
+If $k_2 \neq 0$, then $\lambda_3 = \lambda_2$.
+Since $\lambda_2 \neq \lambda_1$,
+we can get that $\lambda_3 \neq \lambda_1$.
+Thus $k_2$ = 0.
+
+Above, $k_1k_2 = 0$.
+
+\subsection*{2)}
+
+\textbf{Solution.}
+
+Two matrices are similar if and only if they have the same Jordan Normal Form.
+
+The condition can only tell us the number of Jordan blocks associated with an eigenvalue,
+and the sum of the sizes of those blocks.
+
+\textbf{Counter Example:}
+
+Define:
+
+Matrix $\mathbf{A}$ (Partition 2+2):
+
+$$\mathbf{A} =
+\begin{pmatrix}
+0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 \\
+0 & 0 & 0 & 0
+\end{pmatrix}$$
+
+Matrix $\mathbf{B}$ (Partition 3+1):
+
+$$\mathbf{B} =
+\begin{pmatrix}
+0 & 1 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0
+\end{pmatrix}$$
+
+It is obviously that $\A$ and $\B$ satisfy the condition.
+
+If $\A$ is similar with $\B$, we can easily get that $\A^2$ is similar with $\B^2$.
+
+But
+
+$$\mathbf{A}^2 = \mathbf{0}$$
+
+$$\mathbf{B}^2 =
+\begin{pmatrix} 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0 \\ 0 & 0 & 0 & 0
+\end{pmatrix} \neq \mathbf{0}$$
+
+Thus $\A$ is not similar with $\B$.
+
+\section*{Problem 3. (Diagonalization)}
+
+\subsection*{1)}
+
+\textbf{Solution.}
+
+\textbf{Analysis of Matrix A}
+
+\begin{align*}
+\det(\lambda \mathbf{I} - \mathbf{A}) &= \det
+\begin{bmatrix}\lambda + 2 & -1 & -1 \\ 0 & \lambda - 2 & 0 \\ 4 & -1 & \lambda -3
+\end{bmatrix}   \\
+&=(\lambda-2) \cdot \det
+\begin{bmatrix} 2+\lambda & -1 \\ 4 & \lambda-3
+\end{bmatrix} \\
+&= (\lambda - 2)^2 (\lambda + 1)
+\end{align*}
+
+The eigenvalues are:
+\begin{itemize}
+\item $\lambda_1 = 2$ with algebraic multiplicity 2.
+\item $\lambda_2 = -1$ with algebraic multiplicity 1.
+\end{itemize}
+
+Eigenspace for $\lambda_1 = 2$:
+
+Fisrt we solve $(\mathbf{A} - 2\mathbf{I})\mathbf{v} = \mathbf{0}$.
+\[
+\begin{bmatrix} -4 & 1 & 1 \\ 0 & 0 & 0 \\ -4 & 1 & 1
+\end{bmatrix}
+\begin{bmatrix} x \\ y \\ z
+\end{bmatrix} =
+\begin{bmatrix} 0 \\ 0 \\ 0
+\end{bmatrix}
+\]
+
+We have two free variables ($x$ and $y$).
+\begin{itemize}
+\item Setting $x=1, y=0 \implies z=4$, we get $\mathbf{v}_1 =
+\begin{bmatrix} 1 \\ 0 \\ 4
+\end{bmatrix}$.
+\item Setting $x=0, y=1 \implies z=-1$, we get $\mathbf{v}_2 =
+\begin{bmatrix} 0 \\ 1 \\ -1
+\end{bmatrix}$.
+\end{itemize}
+
+Since we have 2 independent eigenvector, the geometry multiplicity is 2 and equal to algebraic multiplicity.
+
+Eigenspace for $\lambda_2 = -1$:
+
+Next, we solve $(\mathbf{A} + \mathbf{I})\mathbf{v} = \mathbf{0}$.
+\[
+\begin{bmatrix} -1 & 1 & 1 \\ 0 & 3 & 0 \\ -4 & 1 & 4
+\end{bmatrix}
+\begin{bmatrix} x \\ y \\ z
+\end{bmatrix} =
+\begin{bmatrix} 0 \\ 0 \\ 0
+\end{bmatrix}
+\]
+
+Setting $x=1$, we get $\mathbf{v}_3 =
+\begin{bmatrix} 1 \\ 0 \\ 1
+\end{bmatrix}$.
+
+Geometric multiplicity is 1 and equal to algebraic multiplicity.
+
+Since geometric multiplicities equal algebraic multiplicities for all eigenvalues, \textbf{$\mathbf{A}$ is diagonalizable.}
+
+\textbf{Analysis of Matrix B}
+
+\begin{align*}
+\det(\lambda \mathbf{I} - \mathbf{B}) &= \det
+\begin{bmatrix}\lambda - 2 & -4 & 0 \\ 0 & \lambda - 2 & 0 \\ 0 & -5 & \lambda -2
+\end{bmatrix}   \\
+&= (\lambda - 2)^3
+\end{align*}
+
+Thus, eigenvalue $\lambda = 2$ has algebraic multiplicity 3.
+
+Eigenspace for $\lambda = 2$:
+
+We solve $(\mathbf{B} - 2\mathbf{I})\mathbf{v} = \mathbf{0}$.
+
+\[
+\begin{bmatrix} 0 & 4 & 0 \\ 0 & 0 & 0 \\ 0 & 5 & 0
+\end{bmatrix}
+\begin{bmatrix} x \\ y \\ z
+\end{bmatrix} =
+\begin{bmatrix} 0 \\ 0 \\ 0
+\end{bmatrix}
+\]
+
+We can easily get the basis vectors: $\mathbf{u}_1 =
+\begin{bmatrix} 1 \\ 0 \\ 0
+\end{bmatrix}$ and $\mathbf{u}_2 =
+\begin{bmatrix} 0 \\ 0 \\ 1
+\end{bmatrix}$.
+Thus, the geometric multiplicity is 2.
+
+Since geometric multiplicity $\neq$ algebraic multiplicity, \textbf{$\mathbf{B}$ is NOT diagonalizable.}
+
+\subsection*{2)}
+
+Based on question 1), it is obviously that
+
+$$
+\mathbf{P} =
+\begin{bmatrix} \mathbf{v}_1 & \mathbf{v}_2 & \mathbf{v}_3
+\end{bmatrix} =
+\begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \\ 4 & -1 & 1
+\end{bmatrix}
+$$
+$$
+\mathbf{D} =
+\begin{bmatrix} 2 & 0 & 0 \\ 0 & 2 & 0 \\ 0 & 0 & -1
+\end{bmatrix}
+$$
+
+and $\mathbf{A} = \mathbf{P}\mathbf{D}\mathbf{P}^{-1}$
+
+\subsection*{3)}
+Fisrt, we use Gaussian transformation to calculate $\mathbf{P}^{-1}$
+and get
+\[
+\mathbf{P}^{-1} =
+\begin{bmatrix} -1/3 & 1/3 & 1/3 \\ 0 & 1 & 0 \\ 4/3 & -1/3 & -1/3
+\end{bmatrix}
+\]
+
+\begin{align*}
+\A^{100} &= (\mathbf{P}\mathbf{D}\mathbf{P}^{-1})^100   \\
+&= \mathbf{P}\mathbf{D}^{100}\mathbf{P}^{-1}  \\
+&= \mathbf{P}\mathbf{D}^{100}\mathbf{P}^{-1} \\
+&=
+\begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 0 \\ 4 & -1 & 1
+\end{bmatrix}
+\begin{bmatrix} 2^{100} & 0 & 0 \\ 0 & 2^{100} & 0 \\ 0 & 0 & 1
+\end{bmatrix}
+\begin{bmatrix} -1/3 & 1/3 & 1/3 \\ 0 & 1 & 0 \\ 4/3 & -1/3 & -1/3
+\end{bmatrix} \\
+&=
+\begin{bmatrix}
+\frac{4 - 2^{100}}{3} & \frac{2^{100}-1}{3} & \frac{2^{100}-1}{3} \\[6pt]
+0 & 2^{100} & 0 \\[6pt]
+\frac{4(1-2^{100})}{3} & \frac{2^{100}-1}{3} & \frac{4\cdot 2^{100}-1}{3}
+\end{bmatrix}
+\end{align*}
+
 \end{document}
