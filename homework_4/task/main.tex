@@ -1,0 +1,290 @@
+\documentclass[english,onecolumn]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage[colorlinks]{hyperref}
+\usepackage{color,xcolor}
+\usepackage{amsthm,amssymb,amsfonts,amsmath}
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+% for matlab code highlight
+% load package with ``framed'' and ``numbered'' option.
+\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+
+\providecommand{\U}[1]{\protect\rule{.1in}{.1in}}
+\topmargin            -18.0mm
+\textheight           226.0mm
+\oddsidemargin      -4.0mm
+\textwidth            166.0mm
+\def\baselinestretch{1.5}
+
+
+
+
+% math operator macros
+\newcommand{\madj}{\mathop{\mathrm{adj}}}
+\newcommand{\trace}{\mathop{\mathrm{tr}}}
+
+
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert} 
+\DeclarePairedDelimiter{\pnorm}{\lVert}{\rVert_p}
+
+
+
+% special letters
+\newcommand{\x}{{\mathbf{x}}} % vector x
+\newcommand{\y}{{\mathbf{y}}} % vector y
+\newcommand{\z}{{\mathbf{z}}} % vector z
+\newcommand{\0}{{\mathbf{0}}} % zero vector
+
+\newcommand{\A}{{\mathbf{A}}} % matrix A
+\newcommand{\B}{{\mathbf{B}}} % matrix B
+\newcommand{\matC}{{\mathbf{C}}} % matrix C
+\newcommand{\matD}{{\mathbf{D}}} % matrix D
+\newcommand{\matE}{{\mathbf{E}}} % matrix E
+\newcommand{\matH}{{\mathbf{H}}} % matrix H
+\newcommand{\matK}{{\mathbf{K}}} % matrix K
+\newcommand{\X}{{\mathbf{X}}} % matrix X
+\newcommand{\Y}{{\mathbf{Y}}} % matrix Y
+\newcommand{\Z}{{\mathbf{Z}}} % matrix Z
+\newcommand{\M}{{\mathbf{M}}} % matrix M
+\newcommand{\I}{{\mathbf{I}}} % identity matrix
+
+\newcommand{\calV}{{\mathcal{V}}} % subspace V
+\newcommand{\calU}{{\mathcal{U}}} % subspace U
+\newcommand{\calS}{{\mathcal{S}}} % subspace S
+\newcommand{\calM}{{\mathcal{M}}} % subspace M
+\newcommand{\calN}{{\mathcal{N}}} % subspace N
+\newcommand{\calR}{\mathop{\mathcal{R}}} % range
+\renewcommand{\calN}{\mathop{\mathcal{N}}} % nullspace
+
+% number fields
+\newcommand{\R}{\mathbb{R}} % real numbers
+\newcommand{\C}{\mathbb{C}} % complex numbers
+
+\newcommand{\bigO}{{\mathcal{O}}} % big-Oh notation
+
+
+
+
+
+
+
+
+
+\begin{document}
+
+\begin{center}
+	\textbf{\LARGE{SI231B: Matrix Computations, 2025 Fall}}\\
+	{\Large Homework Set \#4}\\
+	% \texttt{Prof. Jie Lu}
+\par\end{center}
+
+\noindent
+\rule{\linewidth}{0.4pt}
+% \noindent
+% \rule{\linewidth}{0.4pt}
+{\bf Acknowledgements:}
+\begin{enumerate}
+	\item Deadline: {\bf \textcolor{red}{2025-12-13 23:59:59}}
+    \item Please submit the PDF file to \hyperlink{https://www.gradescope.com/}{gradescope}. Course entry code: N2382J.
+    \item You have 5 ``free days'' in total for all late homework submissions.
+    \item If your homework is handwritten, please make it clear and legible.
+    \item All your answers are required to be in English. 
+    \item Write down the major steps for deriving the solution; otherwise you may loss points.
+\end{enumerate}
+\rule{\linewidth}{0.4pt}
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 1. (Quadratic Form )} (\textcolor{blue}{20 points})
+
+\begin{enumerate}
+Consider the following function:
+\[
+f(\mathbf{x}) = 2x_1^2 + 2x_2^2 + ax_3^2 + 2x_1x_2+2x_1x_3+2x_2x_3
+\]
+
+
+    \item Find a symmetric matrix $\mathbf{A} \in \mathbb{R}^{3 \times 3}$ such that $f(\mathbf{x}) = \mathbf{x}^T \mathbf{A} \mathbf{x}$. (\textcolor{blue}{5 points})
+    
+    \item Find the condition of $a$ such that $\mathbf{A}$ is PSD. (\textcolor{blue}{5 points})
+    
+    \item If $a=2$, find the PSD square root of $\mathbf{A}$. (\textcolor{blue}{10 points})\\(Hint: You might need to use Gram-Schmidt to find orthonormal eigenvectors.)
+
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\bigskip
+
+\noindent{\bf Solution:}
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 2. (Positive Semidefinite Matrices)} (\textcolor{blue}{20 points}) \\
+\noindent Let \( \boldsymbol{A} = \boldsymbol{I} + \boldsymbol{\alpha}\boldsymbol{\alpha}^T \) be an \( n \times n\) real symmetric matrix, where  \( \boldsymbol{\alpha} = [a_1, a_2, \dots, a_n]^T \) is a non-zero real vector, and denote \( \beta = \boldsymbol{\alpha}^T\boldsymbol{\alpha} > 0 \). 
+
+\begin{enumerate}
+\item Prove that \( \boldsymbol{A} \) is a symmetric positive definite matrix.
+  (\textcolor{blue}{5 points}) 
+\item Find all eigenvalues of \( \boldsymbol{A} \) and the corresponding linearly independent eigenvectors (specify the algebraic multiplicity of each eigenvalue).(\textcolor{blue}{5 points}) 
+\item Let \( \boldsymbol{C} = (\boldsymbol{A} - \boldsymbol{I})^3\). Find the positive definite square root \( \boldsymbol{C}^{1/2} \) of \( \boldsymbol{C} \).
+(\textcolor{blue}{10 points})
+
+\end{enumerate}
+
+\bigskip
+
+\noindent \textbf{Solution:}
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 3. (Application of Schur Complement)} \hfill (\textcolor{blue}{10 points}) 
+
+\begin{enumerate}
+Suppose \(\boldsymbol{X}\) is the \(6 \times 6\) matrix:
+\[
+\boldsymbol{X} = 
+\begin{bmatrix}
+2 & 2 & 1 & 0 & 0 & -1  \\
+2 & a & 2 & 0 & 0 & 2 \\
+1 & 2 & 2 & 0 & 0 & 0  \\
+0 & 0 & 0 & 2 & 0 & 0 \\
+0 & 0 & 0 & 0 & 2 & 0  \\
+-1 & 2 & 0 & 0 & 0 & 2 \\
+
+\end{bmatrix}
+\]
+Find the condition of \(a\) such that \(\boldsymbol{X}\) is PSD.
+\textcolor{blue}{(10 points)}
+\end{enumerate}
+
+\bigskip
+
+\noindent \textbf{Solution:}
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 4. (Matrix Inequality, Matrix Norm) } (\textcolor{blue}{25 points})
+
+\begin{enumerate}
+    \item Let $\X \in \mathbb{R}^{n \times r}$ with $r \leq n$, and suppose that
+    \[
+    \|\X^\top \X - \I_r\|_2 = \tau < 1.
+    \]
+    Show that the smallest singular value of $\X$ satisfies
+    \[
+    \sigma_{\min}(\X) \geq 1 - \tau.
+    \] (Hint: $||\A||_2=\max_{||\z||_2=1} ||\A\z||_2=\max_{||\z||_2=||\y||_2=1} |\y^T\A\z|$) (\textcolor{blue}{15 points})
+
+    \item Assume matrix $E=ab^T$, where $a\in\mathbb{R}^m,b\in\mathbb{R}^n, a\neq\mathbf{0}_m,b\neq\mathbf{0}_n$, Prove the maximum singular value $\sigma_{1}(E)=||a||_2||b||_2$. (\textcolor{blue}{10 points})
+    \end{enumerate}
+
+\end{enumerate}
+
+\noindent{\bf Solution:}
+
+
+
+
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 5. (SVD)} (\textcolor{blue}{15 points})
+
+Let $\theta_u$ and $\theta_v$ be real numbers that satisfy $0\le\theta_v-\theta_u\le \frac{\pi}{2}$ and
+\[
+A = \begin{bmatrix}
+\cos(\theta_u) & \sin(\theta_u) \\
+\cos(\theta_v) & \sin(\theta_v)
+\end{bmatrix}.
+\]
+Find the singular value decomposition of $A$. (Hint: $\cos^2\left(\frac{\theta}{2}\right) = \frac{1+\cos(\theta)}{2},\sin^2\left(\frac{\theta}{2}\right) = \frac{1-\cos(\theta)}{2}$. The sum-to-product and product-to-sum identities are as follows.
+% 和差化积（Sum-to-Product）
+\[
+\begin{aligned}
+\sin A + \sin B &= 2\sin\!\left(\tfrac{A+B}{2}\right)\cos\!\left(\tfrac{A-B}{2}\right), \\
+\sin A - \sin B &= 2\cos\!\left(\tfrac{A+B}{2}\right)\sin\!\left(\tfrac{A-B}{2}\right), \\
+\cos A + \cos B &= 2\cos\!\left(\tfrac{A+B}{2}\right)\cos\!\left(\tfrac{A-B}{2}\right), \\
+\cos A - \cos B &= -2\sin\!\left(\tfrac{A+B}{2}\right)\sin\!\left(\tfrac{A-B}{2}\right).
+\end{aligned}
+\]
+% 积化和差（Product-to-Sum）
+\[
+\begin{aligned}
+\sin\alpha\cos\beta &= \tfrac{1}{2}\big[\sin(\alpha+\beta) + \sin(\alpha-\beta)\big], \\
+\cos\alpha\sin\beta &= \tfrac{1}{2}\big[\sin(\alpha+\beta) - \sin(\alpha-\beta)\big], \\
+\cos\alpha\cos\beta &= \tfrac{1}{2}\big[\cos(\alpha+\beta) + \cos(\alpha-\beta)\big], \\
+\sin\alpha\sin\beta &= -\tfrac{1}{2}\big[\cos(\alpha+\beta) - \cos(\alpha-\beta)\big].
+\end{aligned}
+\]
+)
+
+
+\bigskip
+\noindent{\bf Solution:}
+
+
+
+
+% =======================================================================================
+\newpage
+\noindent \textbf{Problem 6. (Sensitivity in Linear Systems)} \hfill (\textcolor{blue}{10 points})
+
+Consider the least squares problem with a full column rank matrix $A\in \mathbb{R}^{m \times n}$ ($m \geq n$):
+\[
+\min_{x \in \mathbb{R}^n} \norm{Ax - y}_2^2.
+\]
+Let $\Delta y$ be a perturbation (disturbance) added to the observation vector $y$, and denote the resulting perturbation in the solution by $\Delta x$. Since $A$ has full column rank, the least-squares solution is unique and given by $x = A^\dagger y$, where $A^\dagger = (A^\top A)^{-1} A^\top$ is the Moore–Penrose pseudoinverse. Consequently,
+\[
+\Delta x = A^\dagger \, \Delta y.
+\]
+
+\begin{enumerate}
+    \item Derive an inequality that relates the relative error in the solution to the relative error in the observation, i.e., prove $$
+\frac{\norm{\Delta x}_2}{\norm{x}_2}
+\leq  \kappa_2(A) \frac{\norm{\Delta y}_2}{\norm{y}_2}. $$
+Where $\kappa_2(A)=\norm{A}_2 \, \norm{A^\dagger}_2 $. (Hint: Under the standard assumption in sensitivity analysis that the residual is small , we have $\norm{Ax}_2 \approx \norm{y}_2$, and thus
+\[
+\frac{1}{\norm{x}_2} \lesssim \frac{\norm{A}_2}{\norm{y}_2}.
+\]) (\textcolor{blue}{7 points})
+    \item Now let $A = \begin{bmatrix} A_1 \\ A_2 \end{bmatrix}$, where $A_1\in\mathbb{R}^{n\times n}$ is nonsingular and $A_2\in\mathbb{R}^{(m-n)\times n}$. Show that the upper bound of $||\Delta x||_2$ cannot infinitely increase with the increase of $m$. (\textit{Hint:}  $||\Delta x||_2=||A^{\dagger}\Delta y||_2$, and use the inequality $||A^\dagger||_2\le ||A_1^{-1}||_2$ to explain.) (\textcolor{blue}{3 points})
+\end{enumerate}
+
+\bigskip
+
+\noindent \textbf{Solution:}
+
+
+\end{document}
