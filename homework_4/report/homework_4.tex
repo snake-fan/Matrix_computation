@@ -97,6 +97,289 @@ $$
 
 \subsection*{3)}
 
+\textbf{Solution.}
+
+Since $a = 2$,
+$$
+(1-\lambda)(\lambda^2 - (3+a)\lambda + 3a - 2) = 0 \implies
+\lambda_1 = \lambda_2 = 1,\lambda_3 = 4
+$$
+
+For $\lambda = 1$, we can easily get
+$$
+\mathbf{w}_1 =
+\begin{bmatrix} 1 \\ -1 \\ 0
+\end{bmatrix}, \quad \mathbf{w}_2 =
+\begin{bmatrix} 1 \\ 0 \\ -1
+\end{bmatrix}
+$$
+
+Apply Gram-schmidt to $\mathbf{w}_1,\mathbf{w}_2$:
+
+$$\mathbf{u}_1 = \mathbf{w}_1$$
+$$
+\mathbf{u}_2
+= \mathbf{w}_2 - \frac{\mathbf{w}_2^T \mathbf{u}_1}{\mathbf{u}_1^T \mathbf{u}_1} \mathbf{u}_1
+=
+\begin{bmatrix} 0.5 \\ 0.5 \\ -1
+\end{bmatrix}
+$$
+
+Normalize the vector and get:
+$$
+\mathbf{q}_1 = \frac{1}{\sqrt{2}}
+\begin{bmatrix} 1 \\ -1 \\ 0
+\end{bmatrix},
+\quad
+\mathbf{q}_2 = \frac{1}{\sqrt{6}}
+\begin{bmatrix} 1 \\ 1 \\ -2
+\end{bmatrix}
+$$
+
+For $\lambda = 4$, we can easily get
+$$\mathbf{q}_3 = \frac{1}{\sqrt{3}}
+\begin{bmatrix} 1 \\ 1 \\ 1
+\end{bmatrix}$$
+
+Thus,
+\begin{align*}
+\mathbf{A}^{1/2} &= \sqrt{\lambda_1} \mathbf{q}_1 \mathbf{q}_1^T + \sqrt{\lambda_2} \mathbf{q}_2 \mathbf{q}_2^T + \sqrt{\lambda_3} \mathbf{q}_3 \mathbf{q}_3^T \\
+&= 1 \cdot \mathbf{q}_1 \mathbf{q}_1^T + 1 \cdot \mathbf{q}_2 \mathbf{q}_2^T + 2 \cdot \mathbf{q}_3 \mathbf{q}_3^T  \\
+&=
+\begin{bmatrix} 4/3 & 1/3 & 1/3 \\ 1/3 & 4/3 & 1/3 \\ 1/3 & 1/3 & 4/3
+\end{bmatrix}
+\end{align*}
+
+\section*{Problem 2. (Positive Semideﬁnite Matrices)}
+
+\subsection*{1)}
+
+\textbf{Solution.}
+
+\textbf{Proof symmetric:}
+
+$$
+A^T = (I + \alpha \alpha^T)^T = I^T + (\alpha \alpha^T)^T = I + (\alpha^T)^T \alpha^T = I + \alpha \alpha^T = A
+$$
+
+\textbf{Proof PD:}
+
+$$
+\begin{aligned}
+\x^T \A \x &= \x^T (I + \alpha \alpha^T) \x \\
+&= \x^T \x + (\x^T \alpha) (\alpha^T \x)    \\
+&= \|\x\|_2 + \|\alpha^T \x\|_2
+\end{aligned}$$
+
+Thus, when $\x \ne 0$, $\x^T \A \x > 0$, i.e. $\A$ is PD matrix.
+
+\subsection*{2)}
+
+\textbf{Solution.}
+
+\textbf{Case 1: The eigenvector is parallel to $\alpha$}
+
+$$
+\begin{aligned}
+A \alpha &= (I + \alpha \alpha^T) \alpha \\
+&= \alpha + \alpha (\alpha^T \alpha)    \\
+&= (1 + \beta)\alpha
+\end{aligned}$$
+
+Thus, $\lambda_1 = 1 + \beta$ is an eigenvalue with eigenvector $\alpha$.
+Since $\alpha$ is a single vector, the algebraic multiplicity is 1.
+
+\textbf{Case 2: The eigenvectors are orthogonal to $\alpha$}
+
+Let $v$ be any non-zero vector satisfy $\alpha^T v = 0$.
+
+$$
+\begin{aligned}
+A v &= (I + \alpha \alpha^T) v \\
+&= v + \alpha (\alpha^T v) \\
+&= v
+\end{aligned}$$
+Thus, $\lambda_2 = 1$ is an eigenvalue.
+
+Since the subspace orthogonal to $\alpha$ has dimension $n-1$,
+there are $n-1$ linearly independent eigenvectors associated with this eigenvalue.
+The algebraic multiplicity is $n-1$.
+
+\subsection*{3)}
+
+\textbf{Solution.}
+
+It is obviously that:
+\begin{align*}
+C &= (\alpha \alpha^T)^3    \\
+&= \beta^2 \alpha \alpha^T  \\
+&= (\beta \alpha)(\beta \alpha)^T
+\end{align*}
+
+Thus,
+\begin{align*}
+C^{1/2} &= \frac{1}{\|\beta \alpha\|_2}(\beta \alpha)(\beta \alpha)^T   \\
+&= \frac{\beta^2}{\sqrt{(\beta \alpha)^T (\beta \alpha)}} \alpha \alpha^T   \\
+&= \sqrt{\beta}\alpha \alpha^T
+\end{align*}
+
+\section*{Problem 3. (Application of Schur Complement)}
+
+\textbf{Solution.}
+
+We will use the Schur Complement to solve this problem.
+
+$$
+M =
+\begin{bmatrix} A & B \\ B^T & C
+\end{bmatrix}
+$$
+
+Then if $ A \succ 0 $, we just need
+$$S = C - B^T A^{-1} B \succeq 0$$
+and we will get $M \succeq 0$.
+
+To reduce the computation, we move rows and columns containing a to the end.
+
+Then we can get
+
+$$X =
+\begin{bmatrix}
+2 & \mathbf{2} & 1 & 0 & 0 & -1 \\
+\mathbf{2} & \mathbf{a} & \mathbf{2} & \mathbf{0} & \mathbf{0} & \mathbf{2} \\
+1 & \mathbf{2} & 2 & 0 & 0 & 0 \\
+0 & \mathbf{0} & 0 & 2 & 0 & 0 \\
+0 & \mathbf{0} & 0 & 0 & 2 & 0 \\
+-1 & \mathbf{2} & 0 & 0 & 0 & 2
+\end{bmatrix}$$
+
+$$A =
+\begin{bmatrix}
+2 & 1 & 0 & 0 & -1 \\
+1 & 2 & 0 & 0 & 0 \\
+0 & 0 & 2 & 0 & 0 \\
+0 & 0 & 0 & 2 & 0 \\
+-1 & 0 & 0 & 0 & 2
+\end{bmatrix}$$
+
+$$B =
+\begin{bmatrix} 2 & 2 & 0 & 0 & 2
+\end{bmatrix}^T$$
+
+$$C = a$$
+
+To make $X$ be PSD matrix, we just need to make sure $ A \succ 0 $ and $S = C - B^T A^{-1} B \succeq 0$.
+
+\textbf{Step1. Prove} $ A \succ 0 $
+
+Since the 3rd, 4th row of $A$ only have diagonal entry 2, we ignore them to simplify the problem.
+
+Then we focus on
+$$A_{core} =
+\begin{bmatrix} 2 & 1 & -1 \\ 1 & 2 & 0 \\ -1 & 0 & 2
+\end{bmatrix}$$
+
+Since:
+\begin{itemize}
+\item $2>0$
+\item $\det{\left(
+\begin{matrix}
+2 & 1   \\
+1 & 2   \\
+\end{matrix}\right)} = 3 > 0
+$
+\item $\det{\left(
+\begin{matrix}
+2 & 1 & -1   \\
+1 & 2 & 0  \\
+-1 & 0 & 2  \\
+\end{matrix}\right)} = 4 > 0
+$
+\end{itemize}
+we can get that $ A \succ 0 $.
+
+\textbf{Step2. Prove} $S = C - B^T A^{-1} B \succeq 0$
+
+Let$y = A^{-1} B$, then $Ay = B$.
+
+We can solve the line system an get that:
+$$
+y = [2, 0, 0, 0, 2]^T
+$$
+
+Thus,
+\begin{align*}
+S &= C - B^T A^{-1} B  \\
+S &= a - B^T y  \\
+&= a -
+\begin{bmatrix} 2 & 2 & 0 & 0 & 2
+\end{bmatrix}
+\begin{bmatrix} 2 \\ 0 \\ 0 \\ 0 \\ 2
+\end{bmatrix}  \\
+&= a - 8
+\end{align*}
+
+If we want $S \ge 0$, we just need $a \ge 8$
+
+\section*{Problem 4. (Matrix Inequality, Matrix Norm)}
+
+\subsection*{1)}
+
+\textbf{Solution.}
+
+First, we can easily get
+$$\sigma_{\min}(\mathbf{X}) = \min_{\|\mathbf{v}\|_2=1} \|\mathbf{Xv}\|_2$$
+
+Since $\mathbf{X}^\top \mathbf{X} - \mathbf{I}_r$ is a real symmetric matrix,
+we can get:
+$$\|\mathbf{X}^\top \mathbf{X} - \mathbf{I}_r\|_2 = \max_{\|\mathbf{v}\|_2=1} |\mathbf{v}^\top (\mathbf{X}^\top \mathbf{X} - \mathbf{I}_r) \mathbf{v}| = \tau$$
+
+Then,
+\begin{align*}
+\max_{\|\mathbf{v}\|_2=1} |\mathbf{v}^\top (\mathbf{X}^\top \mathbf{X} - \mathbf{I}_r) \mathbf{v}| &= \tau  \\
+|\mathbf{v}^\top (\mathbf{X}^\top \mathbf{X} - \mathbf{I}_r) \mathbf{v}| &\le \tau  \\
+|\mathbf{v}^\top \mathbf{X}^\top \mathbf{X} \mathbf{v}- 1| &\le \tau    \\
+|\|\mathbf{Xv}\|_2^2 - 1| &\leq \tau 
+\end{align*}
+Thus,
+$$1 - \tau \leq \|\mathbf{Xv}\|_2^2 \leq 1 + \tau$$
+
+Since $1 - \tau \leq \|\mathbf{Xv}\|_2^2$, we can get:
+$$\min_{\|\mathbf{v}\|_2=1} \|\mathbf{Xv}\|_2^2 \geq 1 - \tau$$
+i.e.,
+$$\sigma_{\min}(\mathbf{X})^2 \geq 1 - \tau$$
+
+$$\sigma_{\min}(\mathbf{X}) \geq \sqrt{1 - \tau}$$
+
+Since $0 \leq \tau < 1$, we know that $\sqrt{1-\tau} \geq 1-\tau$.
+
+Therefore:$$\sigma_{\min}(\mathbf{X}) \geq 1 - \tau$$
+
+\subsection*{2)}
+
+\textbf{Solution.}
+
+$$\sigma_1(\mathbf{E}) = \sqrt{\lambda_{\max}(\mathbf{E}^\top \mathbf{E})}$$
+
+First, we get $\mathbf{E}^\top \mathbf{E}$
+\begin{align*}
+\mathbf{E}^\top \mathbf{E} &= (\mathbf{a}\mathbf{b}^\top)^\top (\mathbf{a}\mathbf{b}^\top)    \\
+&= \|a\|_2 \mathbf{b} \mathbf{b}^\top
+\end{align*}
+
+Since $\mathbf{E}^\top \mathbf{E} = \|a\|_2 \mathbf{b} \mathbf{b}^\top$ is a rank-1 matrix,
+we can get that $\mathbf{E}^\top \mathbf{E}$ only have one none zero eigenvalue.
+
+Consider the vector $\mathbf{b}$ as a candidate eigenvector for the matrix 
+$\mathbf{b}\mathbf{b}^\top$:
+$$(\mathbf{b}\mathbf{b}^\top) \mathbf{b} = \mathbf{b} (\mathbf{b}^\top \mathbf{b}) = \mathbf{b} (\|\mathbf{b}\|_2^2) = \|\mathbf{b}\|_2^2 \mathbf{b}$$
+
+This shows that $\mathbf{b}$ is an eigenvector of $\mathbf{b}\mathbf{b}^\top$ with respect to the eigenvalue $\|\mathbf{b}\|_2^2$.
+
+Thus, the non-zero eigenvalue of the full matrix $\mathbf{E}^\top \mathbf{E} = \|\mathbf{a}\|_2^2 (\mathbf{b}\mathbf{b}^\top)$ is:
+$$\lambda_{\max} = \|\mathbf{a}\|_2^2 \cdot \|\mathbf{b}\|_2^2$$
+
+$$\sigma_1(\mathbf{E}) = \sqrt{\lambda_{\max}(\mathbf{E}^\top \mathbf{E})} = \|\mathbf{a}\|_2 \cdot \|\mathbf{b}\|_2$$
 
 
 \end{document}
