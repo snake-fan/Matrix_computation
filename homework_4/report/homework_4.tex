@@ -339,7 +339,7 @@ Then,
 \max_{\|\mathbf{v}\|_2=1} |\mathbf{v}^\top (\mathbf{X}^\top \mathbf{X} - \mathbf{I}_r) \mathbf{v}| &= \tau  \\
 |\mathbf{v}^\top (\mathbf{X}^\top \mathbf{X} - \mathbf{I}_r) \mathbf{v}| &\le \tau  \\
 |\mathbf{v}^\top \mathbf{X}^\top \mathbf{X} \mathbf{v}- 1| &\le \tau    \\
-|\|\mathbf{Xv}\|_2^2 - 1| &\leq \tau 
+|\|\mathbf{Xv}\|_2^2 - 1| &\leq \tau
 \end{align*}
 Thus,
 $$1 - \tau \leq \|\mathbf{Xv}\|_2^2 \leq 1 + \tau$$
@@ -370,7 +370,7 @@ First, we get $\mathbf{E}^\top \mathbf{E}$
 Since $\mathbf{E}^\top \mathbf{E} = \|a\|_2 \mathbf{b} \mathbf{b}^\top$ is a rank-1 matrix,
 we can get that $\mathbf{E}^\top \mathbf{E}$ only have one none zero eigenvalue.
 
-Consider the vector $\mathbf{b}$ as a candidate eigenvector for the matrix 
+Consider the vector $\mathbf{b}$ as a candidate eigenvector for the matrix
 $\mathbf{b}\mathbf{b}^\top$:
 $$(\mathbf{b}\mathbf{b}^\top) \mathbf{b} = \mathbf{b} (\mathbf{b}^\top \mathbf{b}) = \mathbf{b} (\|\mathbf{b}\|_2^2) = \|\mathbf{b}\|_2^2 \mathbf{b}$$
 
@@ -381,5 +381,149 @@ $$\lambda_{\max} = \|\mathbf{a}\|_2^2 \cdot \|\mathbf{b}\|_2^2$$
 
 $$\sigma_1(\mathbf{E}) = \sqrt{\lambda_{\max}(\mathbf{E}^\top \mathbf{E})} = \|\mathbf{a}\|_2 \cdot \|\mathbf{b}\|_2$$
 
+\section*{Problem 5. (SVD)}
+
+\textbf{Solution.}
+
+First, we get $A A^\top$:
+$$AA^T =
+\begin{bmatrix} \cos(\theta_u) & \sin(\theta_u) \\ \cos(\theta_v) & \sin(\theta_v)
+\end{bmatrix}
+\begin{bmatrix} \cos(\theta_u) & \cos(\theta_v) \\ \sin(\theta_u) & \sin(\theta_v)
+\end{bmatrix} =
+\begin{bmatrix} 1 & \cos(\delta) \\ \cos(\delta) & 1
+\end{bmatrix}$$
+which $\delta = \theta_v - \theta_u $
+
+Next, find the eigenvalues $\lambda$ of $AA^T$.
+
+We solve $\det(\lambda I - AA^T) = 0$ and get
+$$(\lambda - 1)^2 - \cos^2(\delta) = 0 \implies \lambda - 1 = \pm \cos(\delta) \implies \lambda = 1 \pm \cos(\delta)$$
+
+Thus,
+$$\sigma_1 = \sqrt{1 + \cos(\delta)} = \sqrt{2\cos^2(\frac{\delta}{2})} = \sqrt{2}\cos\left(\frac{\theta_v - \theta_u}{2}\right)$$
+$$\sigma_2 = \sqrt{1 - \cos(\delta)} = \sqrt{2\sin^2(\frac{\delta}{2})} = \sqrt{2}\sin\left(\frac{\theta_v - \theta_u}{2}\right)$$
+
+and the matrix $\Sigma$ is:
+$$\Sigma =
+\begin{bmatrix} \sqrt{2}\cos\left(\frac{\theta_v - \theta_u}{2}\right) & 0 \\ 0 & \sqrt{2}\sin\left(\frac{\theta_v - \theta_u}{2}\right)
+\end{bmatrix}$$
+
+For $\lambda_1 = 1 + \cos(\delta)$:
+$$
+\begin{bmatrix} 1 - (1+\cos\delta) & \cos\delta \\ \cos\delta & 1 - (1+\cos\delta)
+\end{bmatrix} \mathbf{u}_1 = \mathbf{0} \implies
+\begin{bmatrix} -\cos\delta & \cos\delta \\ \cos\delta & -\cos\delta
+\end{bmatrix}
+\begin{bmatrix} x \\ y
+\end{bmatrix} = \mathbf{0}$$
+It is obviously that
+$$\mathbf{u}_1 = \frac{1}{\sqrt{2}}
+\begin{bmatrix} 1 \\ 1
+\end{bmatrix}$$
+
+For $\lambda_2 = 1 - \cos(\delta)$:
+$$
+\begin{bmatrix} \cos\delta & \cos\delta \\ \cos\delta & \cos\delta
+\end{bmatrix}
+\begin{bmatrix} x \\ y
+\end{bmatrix} = \mathbf{0}$$
+It is obviously that
+$$\mathbf{u}_2 = \frac{1}{\sqrt{2}}
+\begin{bmatrix} 1 \\ -1
+\end{bmatrix}$$
+
+Thus, the matrix $U$ is:
+$$U = \frac{1}{\sqrt{2}}
+\begin{bmatrix} 1 & 1 \\ 1 & -1
+\end{bmatrix}$$
+
+Finally, we find $V$:
+
+We use the relation $AV = U\Sigma$, which implies $v_i = \frac{1}{\sigma_i} A^T u_i$.
+$$A^T u_1
+=
+\begin{bmatrix} \cos\theta_u & \cos\theta_v \\ \sin\theta_u & \sin\theta_v
+\end{bmatrix} \frac{1}{\sqrt{2}}
+\begin{bmatrix} 1 \\ 1
+\end{bmatrix}
+= \frac{1}{\sqrt{2}}
+\begin{bmatrix} \cos\theta_u + \cos\theta_v \\ \sin\theta_u + \sin\theta_v
+\end{bmatrix}
+= \sqrt{2}\cos(\frac{\theta_v - \theta_u}{2})
+\begin{bmatrix} \cos(\frac{\theta_u+\theta_v}{2}) \\ \sin(\frac{\theta_u+\theta_v}{2})
+\end{bmatrix}$$
+
+Thus,
+$$\mathbf{v}_1 = \frac{1}{\sigma_1} A^T u_1 =
+\begin{bmatrix} \cos\left(\frac{\theta_u+\theta_v}{2}\right) \\ \sin\left(\frac{\theta_u+\theta_v}{2}\right)
+\end{bmatrix}$$
+
+Similarly, we can get:
+$$A^T u_2
+=
+\begin{bmatrix} \cos\theta_u & \cos\theta_v \\ \sin\theta_u & \sin\theta_v
+\end{bmatrix} \frac{1}{\sqrt{2}}
+\begin{bmatrix} 1 \\ -1
+\end{bmatrix}
+= \frac{1}{\sqrt{2}}
+\begin{bmatrix} \cos\theta_u - \cos\theta_v \\ \sin\theta_u - \sin\theta_v
+\end{bmatrix}
+= \sqrt{2}\sin(\frac{\theta_v - \theta_u}{2})
+\begin{bmatrix} \sin(\frac{\theta_u+\theta_v}{2}) \\ -\cos(\frac{\theta_u+\theta_v}{2})
+\end{bmatrix}
+$$
+and
+$$\mathbf{v}_2 =
+\begin{bmatrix} \sin\left(\frac{\theta_u+\theta_v}{2}\right) \\ -\cos\left(\frac{\theta_u+\theta_v}{2}\right)
+\end{bmatrix}$$
+
+Finally, the SVD $A = U \Sigma V^T$ is:
+
+$$U = \frac{1}{\sqrt{2}}
+\begin{bmatrix} 1 & 1 \\ 1 & -1
+\end{bmatrix}$$
+
+$$\Sigma =
+\begin{bmatrix} \sqrt{2}\cos\left(\frac{\theta_v - \theta_u}{2}\right) & 0 \\ 0 & \sqrt{2}\sin\left(\frac{\theta_v - \theta_u}{2}\right)
+\end{bmatrix}$$
+
+$$V^T =
+\begin{bmatrix} \cos\left(\frac{\theta_u+\theta_v}{2}\right) & \sin\left(\frac{\theta_u+\theta_v}{2}\right) \\ \sin\left(\frac{\theta_u+\theta_v}{2}\right) & -\cos\left(\frac{\theta_u+\theta_v}{2}\right)
+\end{bmatrix}$$
+
+\section*{Problem 6. (Sensitivity in Linear Systems)}
+
+\subsection*{1)}
+
+\textbf{Solution.}
+
+Since $\Delta x = A^\dagger \Delta y.$, we can get that $\|\Delta x\|_2 \le \|A^\dagger\|_2 \|\Delta y\|_2$.
+
+Thus,
+$$
+\frac{\|\Delta x\|_2}{\|x\|_2} \le \frac{\|A^\dagger\|_2 \|\Delta y\|_2}{\|x\|_2}
+$$
+
+Then apply the hint and get:
+$$
+\frac{\|\Delta x\|_2}{\|x\|_2} \le \frac{\|A^\dagger\|_2 \|\Delta y\|_2 \|A\|_2}{\|y\|_2} = \kappa_2(A) \frac{\|\Delta y\|_2}{\|y\|_2}
+$$
+
+\subsection*{2)}
+
+\textbf{Solution.}
+
+Use the hint, we can get:
+$$
+\|\Delta x\|_2 = \|A^\dagger \Delta y\|_2 \le \|A^\dagger\|_2 \|\Delta y\|_2
+$$
+Then use the inequality $\|A^\dagger\|_2\le \|A_1^{-1}\|_2$, we can get:
+$$
+\|\Delta x\|_2 \le \|A_1^{-1}\|_2 \|\Delta y\|_2
+$$
+
+Since $\|A_1^{-1}\|_2$ and $\|\Delta y\|_2$ are not relate to $m$,
+we can get the upper bound of $||\Delta x||_2$ cannot infinitely increase with the increase of $m$.
 
 \end{document}
