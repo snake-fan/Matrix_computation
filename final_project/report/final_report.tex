@@ -1,5 +1,7 @@
 \documentclass{article}
 
+\PassOptionsToPackage{numbers, compress}{natbib}
+
 % if you need to pass options to natbib, use, e.g.:
 % \PassOptionsToPackage{numbers, compress}{natbib}
 % before loading nips_2017
@@ -21,384 +23,192 @@
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
 
-\title{Formatting instructions for NIPS 2017}
+% Mathematical Definitions
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Lcal}{\mathcal{L}}
 
-% The \author macro works with any number of authors. There are two
-% commands used to separate the names and addresses of multiple
-% authors: \And and \AND.
-%
-% Using \And between authors leaves it to LaTeX to determine where to
-% break the lines. Using \AND forces a line break at that point. So,
-% if LaTeX puts 3 of 4 authors names on the first line, and the last
-% on the second line, try using \AND instead of \And before the third
-% author name.
+\title{Unified Implicit Differentiation for Structured Deep Learning Layers: A Review and Extension}
 
 \author{
-  David S.~Hippocampus\thanks{Use footnote for providing further
-    information about author (webpage, alternative
-  address)---\emph{not} for acknowledging funding agencies.} \\
-  Department of Computer Science\\
-  Cranberry-Lemon University\\
-  Pittsburgh, PA 15213 \\
-  \texttt{hippo@cs.cranberry-lemon.edu} \\
-  %% examples of more authors
-  %% \And
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
-  %% \AND
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
-  %% \And
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
-  %% \And
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
+  Yifan Zhang \\
+  \texttt{zhangyf52025@shanghaitech.edu.cn} \\
 }
 
+\date{}
+
+\makeatletter
+% 将底部的会议通知改为空白，或者改成你的课程名称
+\renewcommand{\@noticestring}{Project Report for Matrix Computation 25 Fall}
+\makeatother
+
 \begin{document}
-% \nipsfinalcopy is no longer used
 
 \maketitle
 
 \begin{abstract}
-  The abstract paragraph should be indented \nicefrac{1}{2}~inch
-  (3~picas) on both the left- and right-hand margins. Use 10~point
-  type, with a vertical spacing (leading) of 11~points.  The word
-  \textbf{Abstract} must be centered, bold, and in point size 12. Two
-  line spaces precede the abstract. The abstract must be limited to
-  one paragraph.
+  Standard deep learning models rely on explicit layers where the output is a finite sequence of analytical operations applied to the input. Recent advances have introduced \textit{implicit layers}, where the output is defined as the solution to a mathematical problem, such as a fixed-point equation, an ordinary differential equation (ODE), or a constrained optimization problem. While these approaches appear distinct, they share a common mathematical foundation: the reliance on implicit differentiation for efficient backpropagation. In this project, we provide a unified mathematical formulation that encompasses Deep Equilibrium Models (DEQ), Neural ODEs, and Differentiable Optimization layers (OptNet). We critically review literature in this domain and propose [Your Proposed Method Name], a novel approach that improves upon existing implicit solvers by [Briefly mention your improvement, e.g., incorporating low-rank approximations/randomized numerical linear algebra]. Preliminary experiments demonstrate [Expected Results].
 \end{abstract}
 
-\section{Submission of papers to NIPS 2017}
+\section{Introduction}
+Modern deep neural networks are predominantly built upon explicit transformations (e.g., Conv2D, BatchNorm, ReLU), where the hidden state $z_{l+1}$ is explicitly computed from $z_l$. However, a growing body of research suggests that defining layers \textit{implicitly}---via the solution to an underlying equilibrium or optimization condition---offers significant advantages in terms of memory efficiency, parameter sharing, and inductive bias.
 
-NIPS requires electronic submissions.  The electronic submission site
-is
-\begin{center}
-  \url{https://cmt.research.microsoft.com/NIPS2017/}
-\end{center}
+This project focuses on the unification of these implicit methods. Specifically, we investigate the connection between Deep Equilibrium Models \cite{bai2019deq}, Neural ODEs \cite{chen2018neuralode}, and Differentiable Optimization Layers \cite{amos2017optnet, agrawal2019differentiable}. By framing these diverse architectures under a single root-finding problem $g(z, x, \theta) = 0$, we leverage the Implicit Function Theorem (IFT) to derive a generalized backpropagation algorithm.
 
-Please read carefully the instructions below and follow them
-faithfully.
+The contributions of this report are threefold:
+\begin{enumerate}
+  \item We present a unified mathematical formulation for implicit layers, showing that DEQs, Neural ODEs, and OptNet are special cases of a generic root-finding problem.
+  \item We provide a critical review of key literature, highlighting the computational bottleneck of the Jacobian inverse computation.
+  \item We propose [Your Method], which [brief description of your improvement], and validate it on [Dataset/Task].
+\end{enumerate}
 
-\subsection{Style}
+\section{Unified Problem Formulation}
+\label{sec:unified}
 
-Papers to be submitted to NIPS 2017 must be prepared according to the
-instructions presented here. Papers may only be up to eight pages
-long, including figures. This does not include acknowledgments and
-cited references which are allowed on subsequent pages.
-Papers that exceed these limits will not be reviewed, or in any
-other way considered for presentation at the conference.
+Unlike explicit layers where $z = f(x, \theta)$, an implicit layer defines the output $z^\star \in \R^d$ as the solution to a constraint equation. We formalize this unification below.
 
-The margins in 2017 are the same as since 2007, which allow for
-$\sim$$15\%$ more words in the paper compared to earlier years.
+\subsection{The Generic Implicit Layer}
+Let $x \in \R^n$ be the input to a layer and $\theta$ be the layer parameters. We define the output $z^\star$ as the vector satisfying the condition:
 
-Authors are required to use the NIPS \LaTeX{} style files obtainable
-at the NIPS website as indicated below. Please make sure you use the
-current files and not previous versions. Tweaking the style files may
-be grounds for rejection.
+\begin{equation}
+  \label{eq:root}
+  g(z^\star, x, \theta) = 0
+\end{equation}
+where $g: \R^d \times \R^n \times \R^p \to \R^d$ is a continuously differentiable function.
 
-\subsection{Retrieval of style files}
+\paragraph{Case 1: Deep Equilibrium Models (DEQ).}
+In DEQs \cite{bai2019deq}, the output is the fixed point of a non-linear transformation $f$. We look for $z^\star$ such that $z^\star = f(z^\star, x, \theta)$. In our unified framework:
+\begin{equation}
+  g_{DEQ}(z, x, \theta) = z - f(z, x, \theta) = 0
+\end{equation}
 
-The style files for NIPS and other conference information are
-available on the World Wide Web at
-\begin{center}
-  \url{http://www.nips.cc/}
-\end{center}
-The file \verb+nips_2017.pdf+ contains these instructions and
-illustrates the various formatting requirements your NIPS paper must
-satisfy.
+\paragraph{Case 2: Differentiable Optimization (OptNet).}
+For optimization layers \cite{amos2017optnet}, $z^\star$ is the minimizer of a convex objective subject to constraints. If we consider the unconstrained case or the KKT conditions of a constrained problem, the optimality condition is that the gradient of the Lagrangian is zero. Thus:
+\begin{equation}
+  g_{Opt}(z, x, \theta) = \nabla_z \mathcal{L}_{opt}(z, x, \theta) = 0
+\end{equation}
+where $\mathcal{L}_{opt}$ is the objective function (or Lagrangian) of the embedded optimization problem.
 
-The only supported style file for NIPS 2017 is \verb+nips_2017.sty+,
-rewritten for \LaTeXe{}.  \textbf{Previous style files for \LaTeX{}
-2.09, Microsoft Word, and RTF are no longer supported!}
+\paragraph{Case 3: Neural ODEs.}
+Neural ODEs \cite{chen2018neuralode} define $z(T) = z(0) + \int_0^T f(z(t), t, \theta) dt$. While typically solved via the Adjoint Method, this can be viewed as a root-finding problem on the integral equation or discretized steps.
 
-The new \LaTeX{} style file contains two optional arguments:
-\verb+final+, which creates a camera-ready copy, and \verb+nonatbib+,
-which will not load the \verb+natbib+ package for you in case of
-package clash.
+\subsection{Unified Gradient Derivations via IFT}
+Training these models requires computing the gradient of a loss $\ell = \mathcal{L}(z^\star)$ with respect to $\theta$. Direct backpropagation through the solver (unrolling) is memory intensive. Instead, we use the Implicit Function Theorem.
 
-At submission time, please omit the \verb+final+ option. This will
-anonymize your submission and add line numbers to aid review.  Please
-do \emph{not} refer to these line numbers in your paper as they will
-be removed during generation of camera-ready copies.
+Differentiating Eq. (\ref{eq:root}) with respect to $\theta$ yields:
+\begin{equation}
+  \frac{\partial g}{\partial z^\star} \frac{\mathrm{d} z^\star}{\mathrm{d} \theta} + \frac{\partial g}{\partial \theta} = 0
+\end{equation}
+Assuming the Jacobian $J_g = \frac{\partial g}{\partial z^\star}$ is invertible, we solve for the sensitivity:
+\begin{equation}
+  \frac{\mathrm{d} z^\star}{\mathrm{d} \theta} = - \left( \frac{\partial g}{\partial z^\star} \right)^{-1} \frac{\partial g}{\partial \theta}
+\end{equation}
 
-The file \verb+nips_2017.tex+ may be used as a ``shell'' for writing
-your paper. All you have to do is replace the author, title, abstract,
-and text of the paper with your own.
+In practice, we compute the Vector-Jacobian Product (VJP) for backpropagation. Let $v = \frac{\partial \ell}{\partial z^\star}$ be the incoming gradient. The gradient w.r.t. parameters is:
+\begin{equation}
+  \frac{\partial \ell}{\partial \theta} = v^T \frac{\mathrm{d} z^\star}{\mathrm{d} \theta} = - v^T \left( \frac{\partial g}{\partial z^\star} \right)^{-1} \frac{\partial g}{\partial \theta}
+\end{equation}
+This requires solving the linear system $u^T \frac{\partial g}{\partial z^\star} = -v^T$ for $u^T$, often using iterative solvers (e.g., GMRES or Conjugate Gradient) rather than explicitly inverting the Jacobian.
 
-The formatting instructions contained in these style files are
-summarized in Sections \ref{gen_inst}, \ref{headings}, and
-\ref{others} below.
+\section{Critical Literature Review}
+We categorize the surveyed literature based on the unified formulation above.
 
-\section{General formatting instructions}
-\label{gen_inst}
+\subsection{Fixed-Point and ODE Based Models}
+Bai et al. \cite{bai2019deq} introduced \textbf{Deep Equilibrium Models (DEQ)}, demonstrating that one can decouple the forward solver (root-finding) from the backward solver (fixed-point differentiation). This allows for constant memory training regardless of effective depth. \textbf{Neural ODEs} \cite{chen2018neuralode} allow for continuous-depth modeling, particularly effective for time-series data, though they often require complex adaptive step-size solvers.
 
-The text must be confined within a rectangle 5.5~inches (33~picas)
-wide and 9~inches (54~picas) long. The left margin is 1.5~inch
-(9~picas).  Use 10~point type with a vertical spacing (leading) of
-11~points.  Times New Roman is the preferred typeface throughout, and
-will be selected for you by default.  Paragraphs are separated by
-\nicefrac{1}{2}~line space (5.5 points), with no indentation.
+\subsection{Differentiable Optimization Layers}
+Amos and Kolter \cite{amos2017optnet} proposed \textbf{OptNet}, enabling quadratic programs (QP) to be embedded as layers. This was generalized by Agrawal et al. \cite{agrawal2019differentiable} in \textbf{Differentiable Convex Optimization Layers}, utilizing disciplined convex programming (cvxpy) to differentiate through general convex cone programs. \textbf{Input Convex Neural Networks (ICNN)} \cite{amos2017icnn} complement this by providing an architecture that guarantees convexity, serving as valid energy functions for these optimization layers.
 
-The paper title should be 17~point, initial caps/lower case, bold,
-centered between two horizontal rules. The top rule should be 4~points
-thick and the bottom rule should be 1~point thick. Allow
-\nicefrac{1}{4}~inch space above and below the title to rules. All
-pages should start at 1~inch (6~picas) from the top of the page.
+\subsection{Efficient Computation and Matrix Backpropagation}
+A major challenge in Eq. (6) is the cost of linear system solving. Blondel et al. \cite{blondel2021efficient} provide \textbf{Efficient and Modular Implicit Differentiation}, suggesting that the linear system can be solved using the same pre-conditioners as the forward pass. Ionescu et al. \cite{ionescu2015matrix} and Darley et al. \cite{darley2024unified} extend this to \textbf{Matrix Backpropagation}, addressing structured layers (like SVD or Eigendecomposition) often required in the definition of $g(z)$.
 
-For the final version, authors' names are set in boldface, and each
-name is centered above the corresponding address. The lead author's
-name is to be listed first (left-most), and the co-authors' names (if
-different address) are set to follow. If there is only one co-author,
-list both author and co-author side by side.
+\section{Proposed Method: [Your Method Name]}
+\label{sec:method}
 
-Please pay special attention to the instructions in Section \ref{others}
-regarding figures, tables, acknowledgments, and references.
+\subsection{Motivation}
+The primary bottleneck identified in Section \ref{sec:unified} is the computation of $(J_g)^{-1}$. For high-dimensional state spaces ($z \in \R^{1000+}$), solving the linear system $u^T J_g = -v^T$ is computationally expensive ($O(d^3)$ or iterative equivalent).
 
-\section{Headings: first level}
-\label{headings}
+\subsection{Methodology}
+We propose to approximate the Jacobian or the inverse linear solve using [Your Idea, e.g., Low-Rank Approximation / Nystrom Method / randomized numerical linear algebra].
 
-All headings should be lower case (except for first word and proper
-nouns), flush left, and bold.
+Let the Jacobian be approximated as $\tilde{J} \approx U \Sigma V^T$. We modify the backward pass to...
+[Insert Mathematical derivation of your specific improvement here]
 
-First-level headings should be in 12-point type.
+\section{Numerical Experiments}
+\label{sec:experiments}
 
-\subsection{Headings: second level}
+\subsection{Experimental Setup}
+We implement our method in PyTorch.
+\begin{itemize}
+  \item \textbf{Task:} [e.g., Sequence Modeling on synthetic data / Control task].
+  \item \textbf{Baselines:} Standard DEQ (exact implicit differentiation), Unrolled Gradient Descent.
+  \item \textbf{Metric:} Convergence time (seconds), Memory usage (MB), and Test Loss.
+\end{itemize}
 
-Second-level headings should be in 10-point type.
-
-\subsubsection{Headings: third level}
-
-Third-level headings should be in 10-point type.
-
-\paragraph{Paragraphs}
-
-There is also a \verb+\paragraph+ command available, which sets the
-heading in bold, flush left, and inline with the text, with the
-heading followed by 1\,em of space.
-
-\section{Citations, figures, tables, references}
-\label{others}
-
-These instructions apply to everyone.
-
-\subsection{Citations within the text}
-
-The \verb+natbib+ package will be loaded for you by default.
-Citations may be author/year or numeric, as long as you maintain
-internal consistency.  As to the format of the references themselves,
-any style is acceptable as long as it is used consistently.
-
-The documentation for \verb+natbib+ may be found at
-\begin{center}
-  \url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
-\end{center}
-Of note is the command \verb+\citet+, which produces citations
-appropriate for use in inline text.  For example,
-\begin{verbatim}
-   \citet{hasselmo} investigated\dots
-\end{verbatim}
-produces
-\begin{quote}
-  Hasselmo, et al.\ (1995) investigated\dots
-\end{quote}
-
-If you wish to load the \verb+natbib+ package with options, you may
-add the following before loading the \verb+nips_2017+ package:
-\begin{verbatim}
-   \PassOptionsToPackage{options}{natbib}
-\end{verbatim}
-
-If \verb+natbib+ clashes with another package you load, you can add
-the optional argument \verb+nonatbib+ when loading the style file:
-\begin{verbatim}
-   \usepackage[nonatbib]{nips_2017}
-\end{verbatim}
-
-As submission is double blind, refer to your own published work in the
-third person. That is, use ``In the previous work of Jones et
-al.\ [4],'' not ``In our previous work [4].'' If you cite your other
-papers that are not widely available (e.g., a journal paper under
-review), use anonymous author names in the citation, e.g., an author
-of the form ``A.\ Anonymous.''
-
-\subsection{Footnotes}
-
-Footnotes should be used sparingly.  If you do require a footnote,
-indicate footnotes with a number\footnote{Sample of the first
-footnote.} in the text. Place the footnotes at the bottom of the
-page on which they appear.  Precede the footnote with a horizontal
-rule of 2~inches (12~picas).
-
-Note that footnotes are properly typeset \emph{after} punctuation
-marks.\footnote{As in this example.}
-
-\subsection{Figures}
-
-All artwork must be neat, clean, and legible. Lines should be dark
-enough for purposes of reproduction. The figure number and caption
-always appear after the figure. Place one line space before the figure
-caption and one line space after the figure. The figure caption should
-be lower case (except for first word and proper nouns); figures are
-numbered consecutively.
-
-You may use color figures.  However, it is best for the figure
-captions and the paper body to be legible if the paper is printed in
-either black/white or in color.
+\subsection{Results}
 \begin{figure}[h]
   \centering
   \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
-  \caption{Sample figure caption.}
+  \caption{Comparison of training loss vs. time for Baseline DEQ and Our Method.}
+  \label{fig:results}
 \end{figure}
 
-\subsection{Tables}
+Preliminary results (Figure \ref{fig:results}) indicate that our approximation reduces the backward pass time by $X\%$, while maintaining comparable accuracy.
 
-All tables must be centered, neat, clean and legible.  The table
-number and title always appear before the table.  See
-Table~\ref{sample-table}.
-
-Place one line space before the table title, one line space after the
-table title, and one line space after the table. The table title must
-be lower case (except for first word and proper nouns); tables are
-numbered consecutively.
-
-Note that publication-quality tables \emph{do not contain vertical
-rules.} We strongly suggest the use of the \verb+booktabs+ package,
-which allows for typesetting high-quality, professional tables:
-\begin{center}
-  \url{https://www.ctan.org/pkg/booktabs}
-\end{center}
-This package was used to typeset Table~\ref{sample-table}.
-
-\begin{table}[t]
-  \caption{Sample table title}
-  \label{sample-table}
-  \centering
-  \begin{tabular}{lll}
-    \toprule
-    \multicolumn{2}{c}{Part}                   \\
-    \cmidrule{1-2}
-    Name     & Description     & Size ($\mu$m) \\
-    \midrule
-    Dendrite & Input terminal  & $\sim$100     \\
-    Axon     & Output terminal & $\sim$10      \\
-    Soma     & Cell body       & up to $10^6$  \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\section{Final instructions}
-
-Do not change any aspects of the formatting parameters in the style
-files.  In particular, do not modify the width or length of the
-rectangle the text should fit into, and do not change font sizes
-(except perhaps in the \textbf{References} section; see below). Please
-note that pages should be numbered.
-
-\section{Preparing PDF files}
-
-Please prepare submission files with paper size ``US Letter,'' and
-not, for example, ``A4.''
-
-Fonts were the main cause of problems in the past years. Your PDF file
-must only contain Type 1 or Embedded TrueType fonts. Here are a few
-instructions to achieve this.
-
-\begin{itemize}
-
-  \item You should directly generate PDF files using \verb+pdflatex+.
-
-  \item You can check which fonts a PDF files uses.  In Acrobat Reader,
-    select the menu Files$>$Document Properties$>$Fonts and select Show
-    All Fonts. You can also use the program \verb+pdffonts+ which comes
-    with \verb+xpdf+ and is available out-of-the-box on most Linux
-    machines.
-
-  \item The IEEE has recommendations for generating PDF files whose
-    fonts are also acceptable for NIPS. Please see
-    \url{http://www.emfield.org/icuwb2010/downloads/IEEE-PDF-SpecV32.pdf}
-
-  \item \verb+xfig+ "patterned" shapes are implemented with bitmap
-    fonts.  Use "solid" shapes instead.
-
-  \item The \verb+\bbold+ package almost always uses bitmap fonts.  You
-    should use the equivalent AMS Fonts:
-\begin{verbatim}
-   \usepackage{amsfonts}
-\end{verbatim}
-    followed by, e.g., \verb+\mathbb{R}+, \verb+\mathbb{N}+, or
-    \verb+\mathbb{C}+ for $\mathbb{R}$, $\mathbb{N}$ or $\mathbb{C}$.  You
-    can also use the following workaround for reals, natural and complex:
-\begin{verbatim}
-   \newcommand{\RR}{I\!\!R} %real numbers
-   \newcommand{\Nat}{I\!\!N} %natural numbers
-   \newcommand{\CC}{I\!\!\!\!C} %complex numbers
-\end{verbatim}
-    Note that \verb+amsfonts+ is automatically loaded by the
-    \verb+amssymb+ package.
-
-\end{itemize}
-
-If your file contains type 3 fonts or non embedded TrueType fonts, we
-will ask you to fix it.
-
-\subsection{Margins in \LaTeX{}}
-
-Most of the margin problems come from figures positioned by hand using
-\verb+\special+ or other commands. We suggest using the command
-\verb+\includegraphics+ from the \verb+graphicx+ package. Always
-specify the figure width as a multiple of the line width as in the
-example below:
-\begin{verbatim}
-   \usepackage[pdftex]{graphicx} ...
-   \includegraphics[width=0.8\linewidth]{myfile.pdf}
-\end{verbatim}
-See Section 4.4 in the graphics bundle documentation
-(\url{http://mirrors.ctan.org/macros/latex/required/graphics/grfguide.pdf})
-
-A number of width problems arise when \LaTeX{} cannot properly
-hyphenate a line. Please give LaTeX hyphenation hints using the
-\verb+\-+ command when necessary.
-
-\subsubsection*{Acknowledgments}
-
-Use unnumbered third level headings for the acknowledgments. All
-acknowledgments go at the end of the paper. Do not include
-acknowledgments in the anonymized submission, only in the final paper.
+\section{Conclusion}
+In this project, we unified various implicit deep learning models under a single root-finding framework. Building on this, we proposed [Method Name] to accelerate the gradient computation. Our results suggest that [Conclusion].
 
 \section*{References}
-
-References follow the acknowledgments. Use unnumbered first-level
-heading for the references. Any choice of citation style is acceptable
-as long as you are consistent. It is permissible to reduce the font
-size to \verb+small+ (9 point) when listing the references. {\bf
-  Remember that you can go over 8 pages as long as the subsequent ones contain
-\emph{only} cited references.}
-\medskip
-
 \small
+\begin{thebibliography}{99}
 
-[1] Alexander, J.A.\ \& Mozer, M.C.\ (1995) Template-based algorithms
-for connectionist rule extraction. In G.\ Tesauro, D.S.\ Touretzky and
-T.K.\ Leen (eds.), {\it Advances in Neural Information Processing
-Systems 7}, pp.\ 609--616. Cambridge, MA: MIT Press.
+  % A
+  \bibitem{agrawal2019differentiable}
+  A.~Agrawal, B.~Amos, S.~Barratt, S.~Boyd, S.~Diamond, and J.~Z. Kolter.
+  \newblock Differentiable convex optimization layers.
+  \newblock In \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2019.
 
-[2] Bower, J.M.\ \& Beeman, D.\ (1995) {\it The Book of GENESIS:
-  Exploring Realistic Neural Models with the GEneral NEural SImulation
-System.}  New York: TELOS/Springer--Verlag.
+  \bibitem{amos2017icnn}
+  B.~Amos, L.~Xu, and J.~Z. Kolter.
+  \newblock Input convex neural networks.
+  \newblock In \textit{International Conference on Machine Learning (ICML)}, 2017.
 
-[3] Hasselmo, M.E., Schnell, E.\ \& Barkai, E.\ (1995) Dynamics of
-learning and recall at excitatory recurrent synapses and cholinergic
-modulation in rat hippocampal region CA3. {\it Journal of
-Neuroscience} {\bf 15}(7):5249-5262.
+  \bibitem{amos2017optnet}
+  B.~Amos and J.~Z. Kolter.
+  \newblock OptNet: Differentiable optimization as a layer in neural networks.
+  \newblock In \textit{International Conference on Machine Learning (ICML)}, 2017.
+
+  % B
+  \bibitem{bai2019deq}
+  S.~Bai, J.~Z. Kolter, and V.~Koltun.
+  \newblock Deep equilibrium models.
+  \newblock In \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2019.
+
+  \bibitem{blondel2021efficient}
+  M.~Blondel, Q.~Berthet, M.~Cuturi, R.~Frostig, S.~Hoyer, F.~Llanos-Petry, F.~Pedregosa, and W.~S. Jean-Jacques.
+  \newblock Efficient and modular implicit differentiation.
+  \newblock In \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2021.
+
+  % C
+  \bibitem{chen2018neuralode}
+  R.~T.~Q. Chen, Y.~Rubanova, J.~Bettencourt, and D.~Duvenaud.
+  \newblock Neural ordinary differential equations.
+  \newblock In \textit{Advances in Neural Information Processing Systems (NeurIPS)}, 2018.
+
+  % D
+  \bibitem{darley2024unified}
+  G.~Darley and S.~Bonnet.
+  \newblock A Unified Framework for Matrix Backpropagation.
+  \newblock \textit{IEEE Transactions on Neural Networks and Learning Systems (TNNLS)}, 2024.
+
+  % I
+  \bibitem{ionescu2015matrix}
+  C.~Ionescu, O.~Vantzos, and C.~Sminchisescu.
+  \newblock Matrix backpropagation for deep networks with structured layers.
+  \newblock In \textit{International Conference on Computer Vision (ICCV)}, 2015.
+
+\end{thebibliography}
 
 \end{document}
