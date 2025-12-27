@@ -2,17 +2,8 @@
 
 \PassOptionsToPackage{numbers, compress}{natbib}
 
-% if you need to pass options to natbib, use, e.g.:
-% \PassOptionsToPackage{numbers, compress}{natbib}
-% before loading nips_2017
-%
-% to avoid loading the natbib package, add option nonatbib:
-% \usepackage[nonatbib]{nips_2017}
-
+% 加载 nips 样式
 \usepackage[final]{nips_2017}
-
-% to compile a camera-ready version, add the [final] option, e.g.:
-% \usepackage[final]{nips_2017}
 
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
@@ -22,6 +13,21 @@
 \usepackage{amsfonts}       % blackboard math symbols
 \usepackage{nicefrac}       % compact symbols for 1/2, etc.
 \usepackage{microtype}      % microtypography
+\usepackage{amsmath}        % 支持 align 环境
+\usepackage{amssymb}        % 支持 \triangleq 符号
+
+% Appendices 设置
+\usepackage[title,titletoc]{appendix}
+
+% 图片相关设置
+\usepackage{graphicx}   % 必须显式加载 graphicx
+\usepackage{subcaption} % 修复 subfigure undefined 报错
+\usepackage{float}      % 允许使用 [H] 强制图片位置
+\usepackage{grffile}    % 【关键修复】增强对文件名中 . 和 _ 的支持
+
+% 【关键修复】设置图片搜索路径
+% 这样你在 includegraphics 时就不用写文件夹名字了，避免了下划线报错
+\graphicspath{{plots_matrix_backprop/}}
 
 % Mathematical Definitions
 \newtheorem{definition}{Definition}
@@ -40,7 +46,6 @@
 \date{}
 
 \makeatletter
-% 将底部的会议通知改为空白，或者改成你的课程名称
 \renewcommand{\@noticestring}{Project Report for Matrix Computation 25 Fall}
 \makeatother
 
@@ -68,6 +73,121 @@ The contributions of this report are threefold:
 \label{sec:unified}
 
 Unlike explicit layers where $z = f(x, \theta)$, an implicit layer defines the output $z^\star \in \R^d$ as the solution to a constraint equation. We formalize this unification below.
+
+\subsection{The Foundation of Mathematics-The Matrix and the Structured Gradient}
+
+\subsubsection{Matrix Backpropagation for Deep Networks with Structured Layers}
+
+The seminal paper for matrix backpropagation \cite{ionescu2015matrix} introduced a formal framework for training deep networks with global structured layers (e.g., SVD, eigenvalue decomposition) end-to-end.
+
+This work established Matrix Backpropagation (MBP): A methodology to compute gradients for matrix functions using the invariant property of the Frobenius inner product (trace), generalizing the chain rule to matrix variables.
+
+\begin{align}
+  \frac{\partial L^{(l+1)}}{\partial Y} : dY &= \frac{\partial L^{(l+1)}}{\partial Y} : \mathcal{L}(dX) \triangleq \mathcal{L}^* \left( \frac{\partial L^{(l+1)}}{\partial Y} \right) : dX \notag \\
+  &\Rightarrow \mathcal{L}^* \left( \frac{\partial L^{(l+1)}}{\partial Y} \right) = \frac{\partial L^{(l)}}{\partial X}
+\end{align}
+
+They also applied this framework to spectral layers, and derived the specific gradients for layers involving SVD ($X = U \Sigma V^T$) and symmetric EIG ($X = U \Sigma U^T$).
+
+\subsubsection{A Unified Framework for Matrix Backpropagation}
+
+This paper \cite{darley2024unified} revisits the Ionescu approach, corrects it, and proves its theoretical equivalence to the Daleckii-Krein/Bhatia (DK/B) formula, arguing that DK/B is superior for implementation.
+
+This work generalized DK/B Formula: For a diagonalizable matrix $X = U \Lambda U^{-1}$ and $Y=f(X)$:$$\frac{\partial\phi}{\partial X} = U^{-T} [f^{[1]}(X) \odot (U^T \frac{\partial\phi}{\partial Y} U^{-T})] U^T$$
+where
+$$[f^{[1]}(\mathbf{X})]_{ij} =
+\begin{cases}
+  \frac{f(\lambda_i) - f(\lambda_j)}{\lambda_i - \lambda_j}, & i \neq j \\
+  f'(\lambda_i), & \text{otherwise.}
+\end{cases}$$
+
+And for the SPD Case, since $U^{-1}=U^T$, this simplifies to:
+$$\frac{\partial\phi}{\partial X} = U [f^{[1]}(X) \odot (U^T \frac{\partial\phi}{\partial Y} U)] U^T$$
+
+Darley and Bonnet (2025) provide this unified framework that corrects theoretical inaccuracies and proves the equivalence of the original method to the Daleckii-Krein/Bhatia (DK/B) formula. The Unified approach addresses the critical issue of numerical instability in Ionescu's formulation—where close eigenvalues lead to gradient explosion—by utilizing the DK/B formula with Loewner matrices to robustly handle degenerate cases, while simultaneously extending the theory to general diagonalizable matrices and achieving an 8-37\% improvement in computational speed.
+
+\textbf{The experiments can be seen in }Appendix \ref{sec:appendix_matrix_bp}.
+
+\subsection{Optimization as Model: From Constraint Networks to Embedded Solvers}
+
+\subsubsection{OptNet: Differentiable Quadratic Programs as Layers}
+
+Amos and Kolter \cite{amos2017optnet} introduced the OptNet architecture, which integrates optimization problems—specifically Quadratic Programs (QPs)—as individual layers within deep networks. Unlike standard layers with explicit analytical forms, the output of an OptNet layer is the solution to a constrained optimization problem.
+
+Formally, the layer output $z_{i+1}$ is defined as the minimizer of a QP:
+\begin{align}
+  z_{i+1} = \underset{z}{\text{argmin}} \quad & \frac{1}{2}z^T Q(z_i) z + q(z_i)^T z \nonumber \\
+  \text{subject to} \quad & A(z_i) z = b(z_i) \nonumber \\
+  & G(z_i) z \leq h(z_i)
+\end{align}
+where the problem parameters $\{Q, q, A, b, G, h\}$ depend on the previous layer $z_i$.
+
+To enable end-to-end training, the authors derived the gradients of the optimal solution with respect to the input parameters by differentiating the KKT conditions. By applying matrix differentials to the KKT optimality conditions, the gradients are obtained by solving the following linear system:
+\begin{equation}
+  \begin{bmatrix}
+    Q & G^T & A^T \\
+    D(\lambda^*)G & D(Gz^* - h) & 0 \\
+    A & 0 & 0
+  \end{bmatrix}
+  \begin{bmatrix}
+    dz \\ d\lambda \\ d\nu
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    -dQ z^* - dq - dG^T \lambda^* - dA^T \nu^* \\
+    -D(\lambda^*) dG z^* + D(\lambda^*) dh \\
+    -dA z^* + db
+  \end{bmatrix}
+\end{equation}
+Here, $D(\cdot)$ creates a diagonal matrix, and $\nu^*, \lambda^*$ are the optimal dual variables. Crucially, the matrix on the left-hand side is the KKT matrix of the QP. Since this matrix is already factored during the forward pass (using a primal-dual interior point method), the backward pass gradients can be computed with virtually no additional cost by reusing the factorization.
+
+\subsubsection{Differentiable Convex Optimization: From QP to Cone Programs}
+
+Agrawal et al. \cite{agrawal2019differentiable} generalized the concept of differentiable layers from QPs to the broader class of disciplined convex programs (DCP). They proposed a framework where a parametrized problem is represented in \textit{Affine-Solver-Affine} (ASA) form, composed of an affine map from parameters to cone problem data, a conic solver, and an affine retrieval map.
+
+The solution map $\mathcal{S}(\theta)$ is differentiated using the chain rule:
+\begin{equation}
+  D^T \mathcal{S}(\theta) = D^T C(\theta) D^T s(A, b, c) D^T R(\tilde{x}^*)
+\end{equation}
+where $C$ is the canonicalization map and $s$ is the cone solver. To compute $D^T s(A, b, c)$, the authors implicitly differentiate the homogeneous self-dual embedding of the cone program. Specifically, the derivative of the solver with respect to the data matrix $Q$ (constructed from $A, b, c$) is derived from the normalized residual map $\mathcal{N}$:
+\begin{equation}
+  Ds(Q) = -(D_z \mathcal{N}(s(Q), Q))^{-1} D_Q \mathcal{N}(s(Q), Q)
+\end{equation}
+When the linear system involved in this derivative is singular (at non-differentiable points), a least-squares solution is computed instead. This methodology allows for the differentiation of complex convex optimization layers defined via high-level domain-specific languages (DSLs) like CVXPY.
+
+\subsubsection{Input Convex Neural Networks: Inference via Optimization}
+
+In contrast to embedding optimization as a layer, Amos et al. \cite{amos2017icnn} proposed Input Convex Neural Networks (ICNNs), scalar-valued networks $f(x, y; \theta)$ designed to be convex with respect to inputs $y$. This convexity allows for efficient inference by solving the global optimization problem $\text{argmin}_y f(x, y; \theta)$.
+
+To ensure convexity, the network architecture imposes constraints on the weights and activation functions. A fully input convex network (FICNN) follows the recurrence:
+\begin{equation}
+  z_{i+1} = g_i \left( W_i^{(z)} z_i + W_i^{(y)} y + b_i \right)
+\end{equation}
+where $W_i^{(z)}$ must be non-negative and $g_i$ must be convex and non-decreasing.
+
+Training these networks often involves \textit{argmin differentiation}. The gradient of the loss $\ell(\hat{y}, y^*)$ with respect to parameters $\theta$, where $\hat{y} = \text{argmin}_y f(x, y; \theta)$, requires differentiating through the minimization procedure. This is achieved by implicit differentiation of the KKT conditions of the inference problem, resulting in the gradient expression:
+\begin{equation}
+  \nabla_{\theta} \ell = \sum_{i} \left( c_i^{\lambda} \nabla_{\theta} f(x, y^i; \theta) + \nabla_{\theta} (\nabla_y f(x, y^i; \theta)^T v) \right)
+\end{equation}
+where the coefficients are determined by solving a linear system involving the Hessian of the objective function:
+\begin{equation}
+  \begin{bmatrix}
+    H & G^T & 0 \\
+    G & 0 & -1 \\
+    0 & -1^T & 0
+  \end{bmatrix}
+  \begin{bmatrix}
+    c^y \\
+    c^\lambda \\
+    c^t
+  \end{bmatrix}
+  =
+  \begin{bmatrix}
+    -\nabla_{\hat{y}} l(\hat{y}, y^*) \\
+    0 \\
+    0
+  \end{bmatrix}
+\end{equation}
 
 \subsection{The Generic Implicit Layer}
 Let $x \in \R^n$ be the input to a layer and $\theta$ be the layer parameters. We define the output $z^\star$ as the vector satisfying the condition:
@@ -111,7 +231,7 @@ In practice, we compute the Vector-Jacobian Product (VJP) for backpropagation. L
   \frac{\partial \ell}{\partial \theta} = v^T \frac{\mathrm{d} z^\star}{\mathrm{d} \theta} = - v^T \left( \frac{\partial g}{\partial z^\star} \right)^{-1} \frac{\partial g}{\partial \theta}
 \end{equation}
 This requires solving the linear system $u^T \frac{\partial g}{\partial z^\star} = -v^T$ for $u^T$, often using iterative solvers (e.g., GMRES or Conjugate Gradient) rather than explicitly inverting the Jacobian.
-
+%
 \section{Critical Literature Review}
 We categorize the surveyed literature based on the unified formulation above.
 
@@ -150,6 +270,7 @@ We implement our method in PyTorch.
 \subsection{Results}
 \begin{figure}[h]
   \centering
+  % 这里可以放一张主实验结果图
   \fbox{\rule[-.5cm]{0cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
   \caption{Comparison of training loss vs. time for Baseline DEQ and Our Method.}
   \label{fig:results}
@@ -210,5 +331,74 @@ In this project, we unified various implicit deep learning models under a single
   \newblock In \textit{International Conference on Computer Vision (ICCV)}, 2015.
 
 \end{thebibliography}
+
+\clearpage
+
+\appendixpage
+
+\begin{appendices}
+
+  \section{Comparative Analysis of Matrix Backpropagation Methods}
+  \label{sec:appendix_matrix_bp}
+
+  In this appendix, we provide a detailed comparison between the two primary methods for computing gradients of spectral matrix functions: the pioneering approach proposed by Ionescu et al.~\cite{ionescu2015matrix} and the Unified Framework (Daleckii-Krein/Bhatia) recently proposed by Darley and Bonnet~\cite{darley2024unified}. We evaluate both methods in terms of numerical stability, theoretical correctness, and computational efficiency.
+
+  \subsection{Theoretical Formulation}
+
+  Let $\mathbf{X} = \mathbf{U}\mathbf{\Lambda}\mathbf{U}^T$ be the eigendecomposition of a symmetric positive definite (SPD) matrix, and let $Y = f(\mathbf{X})$. We seek the input gradient $\frac{\partial \phi}{\partial \mathbf{X}}$ given the output gradient $\frac{\partial \phi}{\partial \mathbf{Y}}$. Let $\mathbf{C} = \mathbf{U}^T \frac{\partial \phi}{\partial \mathbf{Y}} \mathbf{U}$ be the rotated gradient.
+
+  \paragraph{Ionescu Method.}
+  Ionescu et al.~\cite{ionescu2015matrix} derive the gradient using a matrix $\mathbf{K}$ where $K_{ij} = \frac{1}{\lambda_i - \lambda_j}$ for $i \neq j$. The resulting gradient formulation involves explicit computation of this reciprocal term:
+  \begin{equation}
+    \frac{\partial \phi}{\partial \mathbf{X}}_{\text{Ionescu}} = \mathbf{U} \left[ 2 \operatorname{sym}(\mathbf{K}^T \odot (\mathbf{C} f(\mathbf{\Lambda}))) + \mathbf{I} \odot (f'(\mathbf{\Lambda}) \mathbf{C}) \right] \mathbf{U}^T
+  \end{equation}
+  A critical limitation of this method is its susceptibility to numerical instability. When eigenvalues are close ($\lambda_i \approx \lambda_j$), the term $1/(\lambda_i - \lambda_j)$ approaches infinity, leading to gradient explosion~\cite{darley2024unified}.
+
+  \paragraph{Unified Framework (DK/B).}
+  Darley and Bonnet~\cite{darley2024unified} propose using the Daleckii-Krein/Bhatia (DK/B) formula, which relies on the Loewner matrix $f^{[1]}(\mathbf{X})$:
+  \begin{equation}
+    \frac{\partial \phi}{\partial \mathbf{X}}_{\text{DK/B}} = \mathbf{U} \left[ f^{[1]}(\mathbf{X}) \odot \mathbf{C} \right] \mathbf{U}^T
+  \end{equation}
+  where the entries of the Loewner matrix are defined as divided differences:
+  \begin{equation}
+    [f^{[1]}(\mathbf{X})]_{ij} =
+    \begin{cases}
+      \frac{f(\lambda_i) - f(\lambda_j)}{\lambda_i - \lambda_j}, & i \neq j \\
+      f'(\lambda_i), & i = j
+    \end{cases}
+  \end{equation}
+  Crucially, this formulation is robust to degenerate eigenvalues. As $\lambda_i \to \lambda_j$, the divided difference naturally limits to the derivative $f'(\lambda_i)$, allowing for stable numerical implementation without singularities~\cite{darley2024unified}.
+
+  \subsection{Experimental Verification}
+
+  We conducted simulations to verify the stability and speed of both methods using the matrix logarithm function $f(\mathbf{X}) = \log(\mathbf{X})$.
+
+  \subsubsection{Numerical Stability and Efficiency}
+  We simulated degenerate cases by generating SPD matrices with eigenvalue gaps $\epsilon = |\lambda_i - \lambda_j|$ ranging from $10^{-1}$ to $10^{-16}$.
+  As illustrated in Figure~\ref{fig:stability}, the method from~\cite{ionescu2015matrix} exhibits gradient explosion ($||\nabla \mathbf{X}|| \to \infty$) as $\epsilon \to 0$ due to the singularity in matrix $\mathbf{K}$. In contrast, the DK/B method~\cite{darley2024unified} remains numerically stable across all scales.
+
+  \begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+      \centering
+      \includegraphics[width=\linewidth, keepaspectratio]{../plots/plots_matrix_backprop/2_Stability.png}
+      \caption{Gradient Norm vs. Gap}
+      \label{fig:stability}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+      \centering
+      \includegraphics[width=\textwidth, keepaspectratio]{../plots/plots_matrix_backprop/3_Speed.png}
+      \caption{Time vs. Size}
+      \label{fig:speed}
+    \end{subfigure}
+    \caption{Comparison results. (a) Ionescu method explodes for small gaps; Unified method is stable. (b) Unified method is consistently faster (8-37\% speedup).}
+    \label{fig:results}
+  \end{figure}
+
+  \subsection{Conclusion}
+  Based on our theoretical analysis and experimental validation, the Unified Framework~\cite{darley2024unified} is strictly superior to the approach of~\cite{ionescu2015matrix}. It resolves critical instability issues in degenerate cases and offers improved computational efficiency.
+
+\end{appendices}
 
 \end{document}
