@@ -242,7 +242,7 @@ def main():
     ax1.invert_xaxis()
     ax1.set_xlabel(r'Eigenvalue Gap $|\lambda_i - \lambda_j|$')
     ax1.set_ylabel('Relative Error vs Numerical GT')
-    ax1.set_title('Phase 1: Accuracy Verification\n(Both correct when Gap is large)')
+    ax1.set_title('Accuracy Verification\n(Both correct when Gap is large)')
     ax1.legend()
 
     # 图 2: 梯度爆炸检测
@@ -253,7 +253,7 @@ def main():
     ax2.invert_xaxis()
     ax2.set_xlabel(r'Eigenvalue Gap $|\lambda_i - \lambda_j|$')
     ax2.set_ylabel(r'Gradient Norm $||\nabla X||_F$')
-    ax2.set_title('Phase 2: Stability Check (Small Gaps)\nIonescu Explodes!')
+    ax2.set_title('Stability Check (Small Gaps)\nIonescu Explodes!')
     ax2.annotate('Explosion', xy=(1e-15, norm_ionescu[-1]), xytext=(1e-11, norm_ionescu[-1]/10),
                  arrowprops=dict(facecolor='black', shrink=0.05), color='red')
     ax2.legend()
@@ -265,7 +265,7 @@ def main():
     ax3.fill_between(sizes, t_dkb, t_ion, color='green', alpha=0.1, label='Efficiency Gain')
     ax3.set_xlabel('Matrix Dimension (N)')
     ax3.set_ylabel('Execution Time (s)')
-    ax3.set_title('Phase 3: Computational Efficiency')
+    ax3.set_title('Computational Efficiency')
     ax3.legend()
     speedup = (t_ion[-1] - t_dkb[-1]) / t_ion[-1] * 100
     ax3.text(sizes[2], (t_ion[-1]+t_dkb[-1])/2, f"~{speedup:.1f}% Faster", 

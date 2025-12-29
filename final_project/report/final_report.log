@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.11.4)  27 DEC 2025 18:38
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.11.4)  29 DEC 2025 10:00
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
@@ -518,7 +518,7 @@ Missing character: There is no — ("2014) in font ptmr8t!
 [3]
 
 [4]
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 275.
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 265.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
@@ -548,19 +548,13 @@ L3 programming layer <2025-01-18>
 
 LaTeX Warning: There were multiply-defined labels.
 
-
-Package rerunfilecheck Warning: File `final_report.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `final_report.out':
-(rerunfilecheck)             Before: 781E00E90E88DEAFD2E65382ED5978E9;6380
-(rerunfilecheck)             After:  3878D841BA6A253E40D075EFD124D603;6388.
+Package rerunfilecheck Info: File `final_report.out' has not changed.
+(rerunfilecheck)             Checksum: 3878D841BA6A253E40D075EFD124D603;6388.
  ) 
 Here is how much of TeX's memory you used:
  14184 strings out of 473832
  227109 string characters out of 5729481
- 657774 words of memory out of 5000000
+ 657782 words of memory out of 5000000
  37067 multiletter control sequences out of 15000+600000
  589546 words of font info for 79 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
