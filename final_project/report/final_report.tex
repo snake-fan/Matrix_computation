@@ -189,49 +189,43 @@ where the coefficients are determined by solving a linear system involving the H
   \end{bmatrix}
 \end{equation}
 
-\subsection{The Generic Implicit Layer}
-Let $x \in \R^n$ be the input to a layer and $\theta$ be the layer parameters. We define the output $z^\star$ as the vector satisfying the condition:
+\subsection{Depth as Time: Continuous and Infinite Depth Models}
+\label{sec:depth_as_time}
 
+While the approaches discussed in Section \ref{sec:unified} view layers as discrete constrained optimization steps, another paradigm shifts the perspective of "depth" toward continuous time integration or infinite iterations. Instead of specifying a discrete sequence of hidden layers, these methods parameterize the derivative of the hidden state or define the output as a fixed-point equilibrium. Both approaches rely heavily on implicit differentiation to decouple the forward solution from the backward gradient computation, enabling constant memory training.
+
+\subsubsection{Neural Ordinary Differential Equations}
+
+Neural ODEs \cite{chen2018neuralode} challenge the traditional residual network formulation. A residual block $z_{t+1} = z_t + f(z_t, \theta_t)$ can be viewed as a discrete Euler discretization of a continuous transformation. By taking the limit as the step size approaches zero, the discrete sequence of layers transforms into continuous dynamics governed by an ordinary differential equation (ODE):
 \begin{equation}
-  \label{eq:root}
-  g(z^\star, x, \theta) = 0
+    \frac{dz(t)}{dt} = f(z(t), t, \theta)
 \end{equation}
-where $g: \R^d \times \R^n \times \R^p \to \R^d$ is a continuously differentiable function.
+where the output is defined as the solution to this initial value problem at some time $T$, computed by a black-box differential equation solver.
 
-\paragraph{Case 1: Deep Equilibrium Models (DEQ).}
-In DEQs \cite{bai2019deq}, the output is the fixed point of a non-linear transformation $f$. We look for $z^\star$ such that $z^\star = f(z^\star, x, \theta)$. In our unified framework:
+A key advantage of this formulation is memory efficiency. Standard backpropagation through time (BPTT) would require storing the intermediate states of the solver. Instead, gradients are computed using the \textit{adjoint sensitivity method} \cite{chen2018neuralode}. This method defines an adjoint state $a(t) = \frac{\partial \mathcal{L}}{\partial z(t)}$, whose dynamics follow an augmented ODE backwards in time:
 \begin{equation}
-  g_{DEQ}(z, x, \theta) = z - f(z, x, \theta) = 0
+    \frac{da(t)}{dt} = -a(t)^T \frac{\partial f(z(t), t, \theta)}{\partial z}
 \end{equation}
-
-\paragraph{Case 2: Differentiable Optimization (OptNet).}
-For optimization layers \cite{amos2017optnet}, $z^\star$ is the minimizer of a convex objective subject to constraints. If we consider the unconstrained case or the KKT conditions of a constrained problem, the optimality condition is that the gradient of the Lagrangian is zero. Thus:
+The gradients with respect to the parameters $\theta$ are then obtained by simultaneously solving an integral during the backward pass:
 \begin{equation}
-  g_{Opt}(z, x, \theta) = \nabla_z \mathcal{L}_{opt}(z, x, \theta) = 0
+    \frac{d\mathcal{L}}{d\theta} = -\int_{T}^{t_0} a(t)^T \frac{\partial f(z(t), t, \theta)}{\partial \theta} dt
 \end{equation}
-where $\mathcal{L}_{opt}$ is the objective function (or Lagrangian) of the embedded optimization problem.
+This formulation allows for training continuous-depth models with $O(1)$ memory cost as a function of depth.
 
-\paragraph{Case 3: Neural ODEs.}
-Neural ODEs \cite{chen2018neuralode} define $z(T) = z(0) + \int_0^T f(z(t), t, \theta) dt$. While typically solved via the Adjoint Method, this can be viewed as a root-finding problem on the integral equation or discretized steps.
+\subsubsection{Deep Equilibrium Models (DEQ)}
 
-\subsection{Unified Gradient Derivations via IFT}
-Training these models requires computing the gradient of a loss $\ell = \mathcal{L}(z^\star)$ with respect to $\theta$. Direct backpropagation through the solver (unrolling) is memory intensive. Instead, we use the Implicit Function Theorem.
-
-Differentiating Eq. (\ref{eq:root}) with respect to $\theta$ yields:
+While Neural ODEs model continuous time, Deep Equilibrium Models (DEQs) \cite{bai2019deq} consider the limit of discrete weight-tied networks as depth approaches infinity. In many sequence models, applying the same transformation $f_\theta$ repeatedly leads the hidden state to converge to a stable fixed point $z^\star$. The DEQ framework proposes to find this equilibrium directly via root-finding, rather than unrolling the network:
 \begin{equation}
-  \frac{\partial g}{\partial z^\star} \frac{\mathrm{d} z^\star}{\mathrm{d} \theta} + \frac{\partial g}{\partial \theta} = 0
+    z^\star = f_\theta(z^\star; x) \quad \iff \quad g_\theta(z^\star; x) = f_\theta(z^\star; x) - z^\star = 0
 \end{equation}
-Assuming the Jacobian $J_g = \frac{\partial g}{\partial z^\star}$ is invertible, we solve for the sensitivity:
-\begin{equation}
-  \frac{\mathrm{d} z^\star}{\mathrm{d} \theta} = - \left( \frac{\partial g}{\partial z^\star} \right)^{-1} \frac{\partial g}{\partial \theta}
-\end{equation}
+where $g_\theta$ represents the root-finding problem.
 
-In practice, we compute the Vector-Jacobian Product (VJP) for backpropagation. Let $v = \frac{\partial \ell}{\partial z^\star}$ be the incoming gradient. The gradient w.r.t. parameters is:
+Leveraging the Implicit Function Theorem (IFT), DEQs allow for analytical backpropagation through the equilibrium point without storing the intermediate steps of the forward root-solver (e.g., Broyden's method). Given a loss function $\mathcal{L}$, the gradient is derived as:
 \begin{equation}
-  \frac{\partial \ell}{\partial \theta} = v^T \frac{\mathrm{d} z^\star}{\mathrm{d} \theta} = - v^T \left( \frac{\partial g}{\partial z^\star} \right)^{-1} \frac{\partial g}{\partial \theta}
+    \frac{\partial \mathcal{L}}{\partial (\cdot)} = - \frac{\partial \mathcal{L}}{\partial z^\star} (J_{g_\theta}^{-1}|_{z^\star}) \frac{\partial f_\theta(z^\star; x)}{\partial (\cdot)}
 \end{equation}
-This requires solving the linear system $u^T \frac{\partial g}{\partial z^\star} = -v^T$ for $u^T$, often using iterative solvers (e.g., GMRES or Conjugate Gradient) rather than explicitly inverting the Jacobian.
-%
+Here, $J_{g_\theta}^{-1}$ is the inverse Jacobian of the root-finding function evaluated at the equilibrium. In practice, the term involving the inverse Jacobian is computed by solving a linear system (often via indirect methods like GMRES or conjugate gradient) using vector-Jacobian products. This avoids explicit matrix inversion and ensures constant training memory regardless of the effective "depth" of the model \cite{bai2019deq}.
+
 \section{Critical Literature Review}
 We categorize the surveyed literature based on the unified formulation above.
 
