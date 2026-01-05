@@ -1,8 +1,8 @@
 # Fdb version 4
-["pdflatex"] 1767008461.91223 "/Users/snake/Documents/Matrix_computation/final_project/report/Final_report.tex" "Final_report.pdf" "Final_report" 1767008462.66605 0
-  "../plots/plots_matrix_backprop/2_Stability.png" 1767007743.59556 144167 2ab9c6c93850b8319ae8f05a5df955b6 ""
-  "../plots/plots_matrix_backprop/3_Speed.png" 1767007743.59685 158550 78960835eb61a470aa04d5611033b5ad ""
-  "/Users/snake/Documents/Matrix_computation/final_project/report/Final_report.tex" 1767008459.6233 26137 6ba96b2d5a840d07200f1a8abd3e9af7 ""
+["pdflatex"] 1767583000.47016 "/Users/snake/Documents/Matrix_computation/final_project/report/Final_report.tex" "Final_report.pdf" "Final_report" 1767583001.4352 0
+  "../figs/plots_matrix_backprop/2_Stability.png" 1767007743.59556 144167 2ab9c6c93850b8319ae8f05a5df955b6 ""
+  "../figs/plots_matrix_backprop/3_Speed.png" 1767007743.59685 158550 78960835eb61a470aa04d5611033b5ad ""
+  "/Users/snake/Documents/Matrix_computation/final_project/report/Final_report.tex" 1767582999.19883 31216 9952144f7f6ee5491695ff49d11aed96 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/base/8r.enc" 1165713224 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2025/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/local/texlive/2025/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
@@ -138,9 +138,9 @@
   "/usr/local/texlive/2025/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1762742725 5467155 19efa205003f9ecad95fbbaa6ff24da1 ""
   "/usr/local/texlive/2025/texmf-var/web2c/pdftex/pdflatex.fmt" 1762742648 3345744 8db11e235edc64e5a124e209c6ac30c1 ""
   "/usr/local/texlive/2025/texmf.cnf" 1741450484 577 418a7058ec8e006d8704f60ecd22c938 ""
-  "Final_report.aux" 1767008462.60975 7206 5a8a4858b4d79fe7239147da3ed68a14 "pdflatex"
-  "Final_report.out" 1767008462.61034 6770 7350d2df6f005f18132996b5f1721ff8 "pdflatex"
-  "Final_report.tex" 1767008459.6233 26137 6ba96b2d5a840d07200f1a8abd3e9af7 ""
+  "Final_report.aux" 1767583001.35337 8803 e96cad4048d1afaf2b9ecae4bef8ac51 "pdflatex"
+  "Final_report.out" 1767583001.35416 7373 b3bfccdfcb05090aa5004726a4565eb5 "pdflatex"
+  "Final_report.tex" 1767582999.19883 31216 9952144f7f6ee5491695ff49d11aed96 ""
   "nips_2017.sty" 1766490956.73293 9781 1952f5fb9269df924322edd51d50ed27 ""
   (generated)
   "Final_report.aux"
