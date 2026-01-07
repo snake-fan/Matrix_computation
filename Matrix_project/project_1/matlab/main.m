@@ -1,4 +1,4 @@
-function homework1_solution()
+function main()
     clc; clear; close all;
 
     % Define matrix sizes
