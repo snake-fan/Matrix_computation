@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-# 配置
 torch.manual_seed(42)
 np.random.seed(42)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -24,7 +23,7 @@ def get_ground_truth_grad(A, G):
     # Forward
     L, U = torch.linalg.eigh(A_64)
     L = L.clamp(min=1e-12)
-    # 【修复】使用 diag_embed 支持 Batch
+
     Y_64 = U @ torch.diag_embed(L.sqrt()) @ U.mT
     
     # Backward: Solve Lyapunov Equation
@@ -56,7 +55,6 @@ class IonescuSqrt(torch.autograd.Function):
     @staticmethod
     def forward(ctx, A):
         L, U = torch.linalg.eigh(A)
-        # 【修复】使用 diag_embed 替代 diag，支持 batch
         Y = U @ torch.diag_embed(L.clamp(min=1e-12).sqrt()) @ U.mT
         ctx.save_for_backward(L, U)
         return Y
@@ -67,7 +65,6 @@ class IonescuSqrt(torch.autograd.Function):
         # L shape: [B, N] or [N]
         # U shape: [B, N, N] or [N, N]
         
-        # 【修复】安全的广播写法，支持 Batch
         L_col = L.unsqueeze(-1) # [B, N, 1]
         L_row = L.unsqueeze(-2) # [B, 1, N]
         
@@ -99,13 +96,12 @@ class IonescuSqrt(torch.autograd.Function):
         return grad_input
 
 # ==============================================================================
-# 3. Baseline 2: Unified (Stable DK/B) - 【已修复】
+# 3. Baseline 2: Unified (Stable DK/B)
 # ==============================================================================
 class DarleySqrt(torch.autograd.Function):
     @staticmethod
     def forward(ctx, A):
         L, U = torch.linalg.eigh(A)
-        # 【修复】使用 diag_embed 支持 Batch
         Y = U @ torch.diag_embed(L.clamp(min=1e-12).sqrt()) @ U.mT
         ctx.save_for_backward(L, U)
         return Y
@@ -114,7 +110,6 @@ class DarleySqrt(torch.autograd.Function):
     def backward(ctx, G):
         L, U = ctx.saved_tensors
         
-        # 【修复】安全的 Batch 广播
         L_col = L.unsqueeze(-1) # [B, N, 1]
         L_row = L.unsqueeze(-2) # [B, 1, N]
         
