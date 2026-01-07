@@ -1,186 +1,243 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import matplotlib.pyplot as plt
+from torch.autograd import Function
 import numpy as np
-import torch.nn.functional as F
+import cvxopt
+from cvxopt import solvers
+import matplotlib.pyplot as plt
+from matplotlib.collections import LineCollection
 
 # ==========================================
-# 1. 准备数据 (Ground Truth)
+# 1. 核心算子 (保持数学逻辑不变)
 # ==========================================
-def get_true_projection(x):
-    # 真实的墙：x + y <= 1 (也就是 w=[1,1], b=1)
-    w_true = torch.tensor([1.0, 1.0])
-    b_true = torch.tensor([1.0])
-    w_norm_sq = (w_true ** 2).sum()
-    
-    # 投影逻辑：如果点在墙外 (x·w > b)，就投影回墙上
-    val = x @ w_true - b_true
-    violation = F.relu(val) # 只取正数部分（违反量）
-    
-    # 投影公式: x_new = x - (violation * w) / ||w||^2
-    return x - (violation.view(-1, 1) * w_true) / w_norm_sq
+solvers.options['show_progress'] = False
 
-torch.manual_seed(42)
-# 生成训练数据：我们让数据分布得广一点，甚至有一部分在"真墙"外面
-# 真墙在 x+y=1，我们生成 [-3, 3] 范围内的点
-X_train = torch.randn(300, 2) * 2 
-Y_train = get_true_projection(X_train)
+def to_numpy(tensor):
+    return tensor.detach().cpu().numpy().astype(np.double)
+
+def to_tensor(numpy_array, dtype=torch.float64):
+    return torch.from_numpy(numpy_array).type(dtype)
+
+class OptNetFunction(Function):
+    @staticmethod
+    def forward(ctx, Q, p, G, h):
+        n_vars = Q.shape[0]
+        Q_np, p_np = to_numpy(Q), to_numpy(p)
+        G_np, h_np = to_numpy(G), to_numpy(h)
+        args = [cvxopt.matrix(Q_np), cvxopt.matrix(p_np), 
+                cvxopt.matrix(G_np), cvxopt.matrix(h_np)]
+        try:
+            sol = solvers.qp(*args)
+            status = sol['status']
+        except ValueError:
+            status = 'failed'
+
+        if status != 'optimal':
+            z_star = torch.zeros(n_vars, dtype=torch.float64)
+            lambda_star = torch.zeros(G.shape[0], dtype=torch.float64)
+        else:
+            z_star = to_tensor(np.array(sol['x'])).view(-1)
+            lambda_star = to_tensor(np.array(sol['z'])).view(-1)
+
+        ctx.save_for_backward(z_star, lambda_star, Q, p, G, h)
+        return z_star
+
+    @staticmethod
+    def backward(ctx, grad_z):
+        z_star, lam, Q, p, G, h = ctx.saved_tensors
+        n = z_star.size(0)
+        n_ineq = G.size(0)
+        slacks = G @ z_star - h
+        
+        # KKT 矩阵构建
+        block_1_2 = G.t() @ torch.diag(lam)
+        row1 = torch.cat([Q, block_1_2], dim=1)
+        row2 = torch.cat([G, torch.diag(slacks)], dim=1)
+        KKT_matrix = torch.cat([row1, row2], dim=0)
+        KKT_matrix += 1e-6 * torch.eye(KKT_matrix.shape[0], dtype=torch.float64)
+
+        # 求解方程组
+        rhs = torch.cat([-grad_z, torch.zeros(n_ineq, dtype=torch.float64)])
+        try:
+            adjoint_vec = torch.linalg.solve(KKT_matrix.t(), rhs)
+        except RuntimeError:
+            adjoint_vec = torch.zeros_like(rhs)
+        
+        d_z_tilde = adjoint_vec[:n]      
+        d_lam_tilde = adjoint_vec[n:]    
+
+        # 梯度计算
+        grad_Q = 0.5 * (torch.outer(d_z_tilde, z_star) + torch.outer(z_star, d_z_tilde))
+        grad_p = d_z_tilde
+        grad_G = torch.outer(lam * d_lam_tilde, z_star) + torch.outer(lam, d_z_tilde)
+        grad_h = - lam * d_lam_tilde
+
+        return grad_Q, grad_p, grad_G, grad_h
 
 # ==========================================
-# 2. 定义模型 (OptNet vs MLP)
+# 2. 模型定义 (公平初始化)
 # ==========================================
 
-# --- 模型 A: OptNet (学习约束逻辑) ---
-class RobustOptLayer(nn.Module):
+class OptNetLayer(nn.Module):
     def __init__(self):
         super().__init__()
-        # 【关键调整 1】：初始化
-        # 我们把墙的截距 b 设为 -3.0。
-        # 真实的墙是 b=1.0 (在原点右上方)。
-        # 现在的墙 b=-3.0 (在原点左下方)。
-        # 这意味着绝大多数数据点一开始都在"墙外" (violating constraints)。
-        # 这样能保证一开始就有巨大的梯度，强迫参数迅速更新。
-        self.w = nn.Parameter(torch.tensor([0.5, 0.5])) 
-        self.b = nn.Parameter(torch.tensor([-3.0]))
+        # 【公平初始化】：使用标准正态分布随机初始化
+        # 没有任何人为设定的 -3.0 或 trick
+        # 为了防止一开始就无解(Infeasible)，我们只保证 h 初始为正数 (原点可行)
+        # 这就像初始化 Bias 为 0 或 0.1 一样，是标准操作
+        self.G = nn.Parameter(torch.randn(1, 2).double())
+        self.h = nn.Parameter(torch.rand(1).double() + 0.1) 
+        self.Q = torch.eye(2, dtype=torch.float64) 
 
     def forward(self, x):
-        w_norm_sq = (self.w ** 2).sum()
-        
-        # 计算违反程度
-        val = x @ self.w - self.b
-        violation = F.relu(val)
-        
-        # 投影
-        return x - (violation.view(-1, 1) * self.w) / (w_norm_sq + 1e-6)
+        outputs = []
+        p_batch = -x 
+        for i in range(x.size(0)):
+            z = OptNetFunction.apply(self.Q, p_batch[i], self.G, self.h)
+            outputs.append(z)
+        return torch.stack(outputs)
 
-# --- 模型 B: MLP (传统神经网络) ---
 class BaselineMLP(nn.Module):
     def __init__(self):
         super().__init__()
-        # 增加一点容量，看看能不能拟合得更好
+        # 标准 MLP：3层，ReLU激活
+        # 参数量比 OptNet 多得多，给它足够的容量去拟合
         self.net = nn.Sequential(
             nn.Linear(2, 64),
             nn.ReLU(),
             nn.Linear(64, 64),
             nn.ReLU(),
-            nn.Linear(64, 2) # 输出也是坐标
-        )
+            nn.Linear(64, 2)
+        ).double()
+        
+        # 【公平初始化】：PyTorch 默认的 Kaiming/Xavier 初始化
 
     def forward(self, x):
         return self.net(x)
 
 # ==========================================
-# 3. 训练过程
+# 3. 训练与可视化
 # ==========================================
-opt_model = RobustOptLayer()
-mlp_model = BaselineMLP()
+def get_ground_truth(x):
+    # 真实规则: z1 + z2 <= 1
+    outputs = []
+    w_true = torch.tensor([1.0, 1.0], dtype=torch.float64)
+    for i in range(x.size(0)):
+        xi = x[i]
+        if xi.sum() <= 1.0:
+            outputs.append(xi) # 墙内保持不动
+        else:
+            diff = (xi.sum() - 1.0) / 2.0
+            outputs.append(xi - diff) # 墙外投影
+    return torch.stack(outputs)
 
-# 【关键调整 2】：优化器参数
-# OptNet 的参数物理意义明确，可以用较大的学习率 (0.05)
-# MLP 是非凸的黑盒，学习率小一点更稳定 (0.01)
-opt_optimizer = optim.Adam(opt_model.parameters(), lr=0.05)
-mlp_optimizer = optim.Adam(mlp_model.parameters(), lr=0.01)
+def train_fair():
+    # 1. 数据生成：均匀分布 (Uniform)
+    # 覆盖 [-3, 3] 区域，公平地包含墙内和墙外数据
+    torch.manual_seed(999)
+    n_samples = 150
+    X_train = (torch.rand(n_samples, 2).double() * 6) - 3.0
+    Y_train = get_ground_truth(X_train)
 
-criterion = nn.MSELoss()
+    opt_model = OptNetLayer()
+    mlp_model = BaselineMLP()
 
-print("开始训练对比实验...")
-epochs = 500 # 【关键调整 3】：增加训练轮数
-loss_history_opt = []
-loss_history_mlp = []
-
-for epoch in range(epochs):
-    # 1. 训练 OptNet
-    opt_optimizer.zero_grad()
-    opt_pred = opt_model(X_train)
-    loss_opt = criterion(opt_pred, Y_train)
-    loss_opt.backward()
-    opt_optimizer.step()
-    loss_history_opt.append(loss_opt.item())
+    # 优化器
+    opt_optim = torch.optim.SGD(opt_model.parameters(), lr=0.05, momentum=0.9)
+    mlp_optim = torch.optim.Adam(mlp_model.parameters(), lr=0.01) # Adam 对 MLP 收敛更快
     
-    # 2. 训练 MLP
-    mlp_optimizer.zero_grad()
-    mlp_pred = mlp_model(X_train)
-    loss_mlp = criterion(mlp_pred, Y_train)
-    loss_mlp.backward()
-    mlp_optimizer.step()
-    loss_history_mlp.append(loss_mlp.item())
+    criterion = nn.MSELoss()
+
+    print("=== 开始公平对比训练 ===")
     
-    if epoch % 50 == 0:
-        print(f"Epoch {epoch}: OptNet Loss={loss_opt.item():.5f}, MLP Loss={loss_mlp.item():.5f}")
+    # 训练循环
+    epochs = 100
+    for epoch in range(epochs):
+        # Train OptNet
+        opt_optim.zero_grad()
+        opt_pred = opt_model(X_train)
+        loss_opt = criterion(opt_pred, Y_train)
+        loss_opt.backward()
+        opt_optim.step()
+        
+        # Train MLP
+        mlp_optim.zero_grad()
+        mlp_pred = mlp_model(X_train)
+        loss_mlp = criterion(mlp_pred, Y_train)
+        loss_mlp.backward()
+        mlp_optim.step()
+        
+        if epoch % 20 == 0:
+            print(f"Epoch {epoch}: OptNet Loss={loss_opt.item():.5f}, MLP Loss={loss_mlp.item():.5f}")
 
-print(f"训练结束.\nOptNet 最终参数: w={opt_model.w.data.numpy()}, b={opt_model.b.data.item():.2f}")
-print(f"真实参数: w=[1.0, 1.0], b=1.0")
+    # ==========================
+    # 可视化 (绘制位移线)
+    # ==========================
+    # 生成测试网格
+    grid_x = np.linspace(-3, 3, 15)
+    grid_y = np.linspace(-3, 3, 15)
+    xx, yy = np.meshgrid(grid_x, grid_y)
+    X_test = torch.from_numpy(np.c_[xx.ravel(), yy.ravel()]).double()
 
-# ==========================================
-# 4. 可视化对比 (生成高清大图)
-# ==========================================
-def plot_line(w, b, color, label, style='-', alpha=1.0, linewidth=2):
-    w = w.detach().numpy()
-    b = b.detach().numpy()
-    # 扩大画图范围以免线断掉
-    x_vals = np.linspace(-6, 6, 200)
+    with torch.no_grad():
+        opt_out = opt_model(X_test)
+        mlp_out = mlp_model(X_test)
+
+    # 绘图函数
+    def plot_displacement(ax, model_name, X, Y_pred, G=None, h=None):
+        ax.set_title(model_name)
+        # 1. 画真实墙
+        x_range = np.linspace(-3, 3, 100)
+        ax.plot(x_range, 1.0 - x_range, 'b-', linewidth=4, alpha=0.3, label='True Wall')
+        
+        # 2. 画学到的墙 (仅 OptNet)
+        if G is not None:
+            G_np = G.detach().numpy().ravel()
+            h_np = h.detach().numpy()
+            if abs(G_np[1]) > 1e-4:
+                y_pred_line = (h_np[0] - G_np[0] * x_range) / G_np[1]
+                ax.plot(x_range, y_pred_line, 'r--', linewidth=2, label='Learned Wall')
+
+        # 3. 绘制位移线段 (Input -> Output)
+        # 这是一个非常关键的可视化，可以看到点是怎么移动的
+        lines = []
+        colors = []
+        X_np = X.numpy()
+        Y_np = Y_pred.numpy()
+        
+        for i in range(len(X_np)):
+            lines.append([X_np[i], Y_np[i]])
+            # 如果位移很小，用灰色；如果位移大，用红色
+            dist = np.linalg.norm(X_np[i] - Y_np[i])
+            if dist < 0.05:
+                colors.append('lightgray') # 不动点 (Safe)
+            else:
+                colors.append('red')       # 投影点 (Violating)
+        
+        lc = LineCollection(lines, colors=colors, linewidths=1, alpha=0.7)
+        ax.add_collection(lc)
+        
+        # 画端点
+        ax.scatter(X_np[:, 0], X_np[:, 1], s=10, c='gray', alpha=0.5, marker='.') # 起点
+        # ax.scatter(Y_np[:, 0], Y_np[:, 1], s=20, c='black', marker='.') # 终点
+
+        ax.set_xlim(-3, 3)
+        ax.set_ylim(-3, 3)
+        ax.grid(True)
+        ax.legend(loc='lower left')
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
     
-    if abs(w[1]) > 1e-5:
-        y_vals = (b - w[0] * x_vals) / w[1]
-        plt.plot(x_vals, y_vals, color=color, label=label, linestyle=style, alpha=alpha, linewidth=linewidth)
-    else:
-        plt.axvline(x=b/w[0], color=color, label=label, linestyle=style, alpha=alpha, linewidth=linewidth)
+    plot_displacement(ax1, f"OptNet (Loss: {loss_opt.item():.5f})", 
+                      X_test, opt_out, opt_model.G, opt_model.h)
+    
+    plot_displacement(ax2, f"MLP (Loss: {loss_mlp.item():.5f})", 
+                      X_test, mlp_out)
 
-plt.figure(figsize=(16, 7))
+    plt.tight_layout()
+    plt.savefig('optnet_fair_comparison.png')
+    print("公平对比图已保存为 optnet_fair_comparison.png")
+    plt.show()
 
-# --- 测试数据 (生成一圈新数据来测试泛化) ---
-# 这是一个"圆环"形状的数据，很多点都在墙外，更能看出投影效果
-theta = torch.linspace(0, 2 * np.pi, 100)
-r = 3.5
-X_test = torch.stack([r * torch.cos(theta), r * torch.sin(theta)], dim=1)
-# 加上一些随机噪点
-X_test = torch.cat([X_test, torch.randn(50, 2)*3], dim=0)
-
-# ---------------------------
-# 子图 1: OptNet
-# ---------------------------
-plt.subplot(1, 2, 1)
-plt.title("OptNet: Learned Constraint (Logic)", fontsize=14)
-
-# 1. 画真实的墙 (背景)
-plot_line(torch.tensor([1.0, 1.0]), torch.tensor([1.0]), 'blue', 'True Wall', linewidth=10, alpha=0.2)
-
-# 2. 画 OptNet 学到的墙
-plot_line(opt_model.w, opt_model.b, 'red', 'Learned Wall', '-', linewidth=3)
-
-# 3. 画输入点 (灰色)
-plt.scatter(X_test[:, 0], X_test[:, 1], c='gray', alpha=0.3, label='Input Points')
-
-# 4. 画 OptNet 的输出 (红色叉)
-opt_out = opt_model(X_test).detach()
-plt.scatter(opt_out[:, 0], opt_out[:, 1], c='red', marker='x', s=40, label='OptNet Output')
-
-plt.xlim(-4, 4)
-plt.ylim(-4, 4)
-plt.legend(loc='lower left')
-plt.grid(True, linestyle='--', alpha=0.6)
-
-# ---------------------------
-# 子图 2: MLP
-# ---------------------------
-plt.subplot(1, 2, 2)
-plt.title("MLP: Function Approximation (Memory)", fontsize=14)
-
-# 1. 画真实的墙 (作为参考)
-plot_line(torch.tensor([1.0, 1.0]), torch.tensor([1.0]), 'blue', 'True Wall', linewidth=10, alpha=0.2)
-
-# 2. 画输入点 (灰色)
-plt.scatter(X_test[:, 0], X_test[:, 1], c='gray', alpha=0.3, label='Input Points')
-
-# 3. 画 MLP 的输出 (绿色三角)
-mlp_out = mlp_model(X_test).detach()
-plt.scatter(mlp_out[:, 0], mlp_out[:, 1], c='green', marker='^', s=40, label='MLP Output')
-
-plt.xlim(-4, 4)
-plt.ylim(-4, 4)
-plt.legend(loc='lower left')
-plt.grid(True, linestyle='--', alpha=0.6)
-
-plt.tight_layout()
-plt.savefig('optnet_vs_mlp_improved.png')
+if __name__ == "__main__":
+    train_fair()
