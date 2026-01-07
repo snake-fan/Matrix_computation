@@ -1,8 +1,7 @@
 \documentclass{article}
 
+% 如果你没有 nips_2017.sty 文件，可以把下面这行注释掉，改用 \usepackage{geometry}
 \PassOptionsToPackage{numbers, compress}{natbib}
-
-% 加载 nips 样式
 \usepackage[final]{nips_2017}
 
 \usepackage[utf8]{inputenc} % allow utf-8 input
@@ -23,10 +22,10 @@
 \usepackage{graphicx}   % 必须显式加载 graphicx
 \usepackage{subcaption} % 修复 subfigure undefined 报错
 \usepackage{float}      % 允许使用 [H] 强制图片位置
-\usepackage{grffile}    % 【关键修复】增强对文件名中 . 和 _ 的支持
+\usepackage{grffile}    % 增强对文件名中 . 和 _ 的支持
+\usepackage{placeins}
 
-% 【关键修复】设置图片搜索路径
-% 这样你在 includegraphics 时就不用写文件夹名字了，避免了下划线报错
+% 设置图片搜索路径
 \graphicspath{{plots_matrix_backprop/}}
 
 % Mathematical Definitions
@@ -55,14 +54,14 @@
 \maketitle
 
 % =================================================================
-% 1. Abstract (Modified)
+% 1. Abstract
 % =================================================================
 \begin{abstract}
   Standard deep learning models rely on explicit layers where the output is a finite sequence of analytical operations applied to the input. Recent advances have introduced \textit{implicit layers}, where the output is defined as the solution to a mathematical problem, such as a fixed-point equation, an ordinary differential equation (ODE), or a constrained optimization problem. While these approaches appear distinct, they share a common mathematical foundation: the reliance on implicit differentiation for efficient backpropagation. In this project, we provide a unified mathematical formulation that encompasses Deep Equilibrium Models (DEQ), Neural ODEs, and Differentiable Optimization layers (OptNet). We critically review literature in this domain and propose the \textbf{SVD-Free Newton-Schulz Layer}, a novel approach that improves upon existing implicit solvers by replacing expensive Spectral Decompositions (SVD) with iterative matrix multiplications and implicit Lyapunov differentiation. Preliminary experiments demonstrate that our method achieves superior numerical stability in degenerate cases and better computational scaling on GPUs compared to state-of-the-art spectral baselines.
 \end{abstract}
 
 % =================================================================
-% 2. Introduction (Modified Contribution Part)
+% 2. Introduction
 % =================================================================
 \section{Introduction}
 Modern deep neural networks are predominantly built upon explicit transformations (e.g., Conv2D, BatchNorm, ReLU), where the hidden state $z_{l+1}$ is explicitly computed from $z_l$. However, a growing body of research suggests that defining layers \textit{implicitly}---via the solution to an underlying equilibrium or optimization condition---offers significant advantages in terms of memory efficiency, parameter sharing, and inductive bias.
@@ -77,14 +76,14 @@ The contributions of this report are threefold:
 \end{enumerate}
 
 % =================================================================
-% 3. Unified Problem Formulation (Kept Original)
+% 3. Unified Problem Formulation
 % =================================================================
 \section{Unified Problem Formulation}
 \label{sec:unified}
 
 Unlike explicit layers where $z = f(x, \theta)$, an implicit layer defines the output $z^\star \in \R^d$ as the solution to a constraint equation. We formalize this unification below.
 
-\subsection{The Foundation of Mathematics-The Matrix and the Structured Gradient}
+\subsection{The Foundation of Mathematics: The Matrix and the Structured Gradient}
 
 \subsubsection{Matrix Backpropagation for Deep Networks with Structured Layers}
 
@@ -114,7 +113,7 @@ $$[f^{[1]}(\mathbf{X})]_{ij} =
 And for the SPD Case, since $U^{-1}=U^T$, this simplifies to:
 $$\frac{\partial\phi}{\partial X} = U [f^{[1]}(X) \odot (U^T \frac{\partial\phi}{\partial Y} U)] U^T$$
 
-Darley and Bonnet (2025) provide this unified framework that corrects theoretical inaccuracies and proves the equivalence of the original method to the Daleckii-Krein/Bhatia (DK/B) formula. The Unified approach addresses the critical issue of numerical instability in Ionescu's formulation—where close eigenvalues lead to gradient explosion—by utilizing the DK/B formula with Loewner matrices to robustly handle degenerate cases, while simultaneously extending the theory to general diagonalizable matrices and achieving an 8-37\% improvement in computational speed.
+Darley and Bonnet (2025) provide this unified framework that corrects theoretical inaccuracies and proves the equivalence of the original method to the Daleckii-Krein/Bhatia (DK/B) formula. The Unified approach addresses the critical issue of numerical instability in Ionescu's formulation—where close eigenvalues lead to gradient explosion—by utilizing the DK/B formula with Loewner matrices to robustly handle degenerate cases.
 
 \textbf{The experiments can be seen in }Appendix \ref{sec:appendix_matrix_bp}.
 
@@ -151,6 +150,8 @@ To enable end-to-end training, the authors derived the gradients of the optimal 
 \end{equation}
 Here, $D(\cdot)$ creates a diagonal matrix, and $\nu^*, \lambda^*$ are the optimal dual variables. Crucially, the matrix on the left-hand side is the KKT matrix of the QP. Since this matrix is already factored during the forward pass (using a primal-dual interior point method), the backward pass gradients can be computed with virtually no additional cost by reusing the factorization.
 
+I conducted a preliminary experiment based on the research framework outlined in the paper, with detailed procedures available in Appendix \ref{sec:appendix_optnet}.
+
 \subsubsection{Differentiable Convex Optimization: From QP to Cone Programs}
 
 Agrawal et al. \cite{agrawal2019differentiable} generalized the concept of differentiable layers from QPs to the broader class of disciplined convex programs (DCP). They proposed a framework where a parametrized problem is represented in \textit{Affine-Solver-Affine} (ASA) form, composed of an affine map from parameters to cone problem data, a conic solver, and an affine retrieval map.
@@ -163,7 +164,7 @@ where $C$ is the canonicalization map and $s$ is the cone solver. To compute $D^
 \begin{equation}
   Ds(Q) = -(D_z \mathcal{N}(s(Q), Q))^{-1} D_Q \mathcal{N}(s(Q), Q)
 \end{equation}
-When the linear system involved in this derivative is singular (at non-differentiable points), a least-squares solution is computed instead. This methodology allows for the differentiation of complex convex optimization layers defined via high-level domain-specific languages (DSLs) like CVXPY.
+When the linear system involved in this derivative is singular (at non-differentiable points), a least-squares solution is computed instead.
 
 \subsubsection{Input Convex Neural Networks: Inference via Optimization}
 
@@ -175,119 +176,136 @@ To ensure convexity, the network architecture imposes constraints on the weights
 \end{equation}
 where $W_i^{(z)}$ must be non-negative and $g_i$ must be convex and non-decreasing.
 
-Training these networks often involves \textit{argmin differentiation}. The gradient of the loss $\ell(\hat{y}, y^*)$ with respect to parameters $\theta$, where $\hat{y} = \text{argmin}_y f(x, y; \theta)$, requires differentiating through the minimization procedure. This is achieved by implicit differentiation of the KKT conditions of the inference problem, resulting in the gradient expression:
-\begin{equation}
-  \nabla_{\theta} \ell = \sum_{i} \left( c_i^{\lambda} \nabla_{\theta} f(x, y^i; \theta) + \nabla_{\theta} (\nabla_y f(x, y^i; \theta)^T v) \right)
-\end{equation}
-where the coefficients are determined by solving a linear system involving the Hessian of the objective function:
-\begin{equation}
-  \begin{bmatrix}
-    H & G^T & 0 \\
-    G & 0 & -1 \\
-    0 & -1^T & 0
-  \end{bmatrix}
-  \begin{bmatrix}
-    c^y \\
-    c^\lambda \\
-    c^t
-  \end{bmatrix}
-  =
-  \begin{bmatrix}
-    -\nabla_{\hat{y}} l(\hat{y}, y^*) \\
-    0 \\
-    0
-  \end{bmatrix}
-\end{equation}
-
 \subsection{Depth as Time: Continuous and Infinite Depth Models}
 \label{sec:depth_as_time}
 
-While the approaches discussed in Section \ref{sec:unified} view layers as discrete constrained optimization steps, another paradigm shifts the perspective of "depth" toward continuous time integration or infinite iterations. Instead of specifying a discrete sequence of hidden layers, these methods parameterize the derivative of the hidden state or define the output as a fixed-point equilibrium. Both approaches rely heavily on implicit differentiation to decouple the forward solution from the backward gradient computation, enabling constant memory training.
+While the approaches discussed in Section \ref{sec:unified} view layers as discrete constrained optimization steps, another paradigm shifts the perspective of "depth" toward continuous time integration or infinite iterations.
 
 \subsubsection{Neural Ordinary Differential Equations}
 
 Neural ODEs \cite{chen2018neuralode} challenge the traditional residual network formulation. A residual block $z_{t+1} = z_t + f(z_t, \theta_t)$ can be viewed as a discrete Euler discretization of a continuous transformation. By taking the limit as the step size approaches zero, the discrete sequence of layers transforms into continuous dynamics governed by an ordinary differential equation (ODE):
 \begin{equation}
-    \frac{dz(t)}{dt} = f(z(t), t, \theta)
+  \frac{dz(t)}{dt} = f(z(t), t, \theta)
 \end{equation}
 where the output is defined as the solution to this initial value problem at some time $T$, computed by a black-box differential equation solver.
 
-A key advantage of this formulation is memory efficiency. Standard backpropagation through time (BPTT) would require storing the intermediate states of the solver. Instead, gradients are computed using the \textit{adjoint sensitivity method} \cite{chen2018neuralode}. This method defines an adjoint state $a(t) = \frac{\partial \mathcal{L}}{\partial z(t)}$, whose dynamics follow an augmented ODE backwards in time:
+A key advantage of this formulation is memory efficiency. Gradients are computed using the \textit{adjoint sensitivity method} \cite{chen2018neuralode}. This method defines an adjoint state $a(t) = \frac{\partial \mathcal{L}}{\partial z(t)}$, whose dynamics follow an augmented ODE backwards in time:
 \begin{equation}
-    \frac{da(t)}{dt} = -a(t)^T \frac{\partial f(z(t), t, \theta)}{\partial z}
+  \frac{da(t)}{dt} = -a(t)^T \frac{\partial f(z(t), t, \theta)}{\partial z}
 \end{equation}
 The gradients with respect to the parameters $\theta$ are then obtained by simultaneously solving an integral during the backward pass:
 \begin{equation}
-    \frac{d\mathcal{L}}{d\theta} = -\int_{T}^{t_0} a(t)^T \frac{\partial f(z(t), t, \theta)}{\partial \theta} dt
+  \frac{d\mathcal{L}}{d\theta} = -\int_{T}^{t_0} a(t)^T \frac{\partial f(z(t), t, \theta)}{\partial \theta} dt
 \end{equation}
-This formulation allows for training continuous-depth models with $O(1)$ memory cost as a function of depth.
 
 \subsubsection{Deep Equilibrium Models (DEQ)}
 
-While Neural ODEs model continuous time, Deep Equilibrium Models (DEQs) \cite{bai2019deq} consider the limit of discrete weight-tied networks as depth approaches infinity. In many sequence models, applying the same transformation $f_\theta$ repeatedly leads the hidden state to converge to a stable fixed point $z^\star$. The DEQ framework proposes to find this equilibrium directly via root-finding, rather than unrolling the network:
+While Neural ODEs model continuous time, Deep Equilibrium Models (DEQs) \cite{bai2019deq} consider the limit of discrete weight-tied networks as depth approaches infinity. The DEQ framework proposes to find the equilibrium directly via root-finding, rather than unrolling the network:
 \begin{equation}
-    z^\star = f_\theta(z^\star; x) \quad \iff \quad g_\theta(z^\star; x) = f_\theta(z^\star; x) - z^\star = 0
+  z^\star = f_\theta(z^\star; x) \quad \iff \quad g_\theta(z^\star; x) = f_\theta(z^\star; x) - z^\star = 0
 \end{equation}
 where $g_\theta$ represents the root-finding problem.
 
 Leveraging the Implicit Function Theorem (IFT), DEQs allow for analytical backpropagation through the equilibrium point without storing the intermediate steps of the forward root-solver (e.g., Broyden's method). Given a loss function $\mathcal{L}$, the gradient is derived as:
 \begin{equation}
-    \frac{\partial \mathcal{L}}{\partial (\cdot)} = - \frac{\partial \mathcal{L}}{\partial z^\star} (J_{g_\theta}^{-1}|_{z^\star}) \frac{\partial f_\theta(z^\star; x)}{\partial (\cdot)}
+  \frac{\partial \mathcal{L}}{\partial (\cdot)} = - \frac{\partial \mathcal{L}}{\partial z^\star} (J_{g_\theta}^{-1}|_{z^\star}) \frac{\partial f_\theta(z^\star; x)}{\partial (\cdot)}
 \end{equation}
-Here, $J_{g_\theta}^{-1}$ is the inverse Jacobian of the root-finding function evaluated at the equilibrium. In practice, the term involving the inverse Jacobian is computed by solving a linear system (often via indirect methods like GMRES or conjugate gradient) using vector-Jacobian products. This avoids explicit matrix inversion and ensures constant training memory regardless of the effective "depth" of the model \cite{bai2019deq}.
+
+\subsection{The Unity of the Whole-The Synthesis of Theory and Practice}
+
+\subsubsection{Efficient and Modular Implicit Differentiation}
+
+While implicit differentiation offers significant memory efficiency by decoupling the forward solver from the backward pass, it has historically required tedious, case-by-case mathematical derivations and implementations for each new optimization problem \cite{blondel2021efficient}. To address this, Blondel et al. introduced \textit{Automatic Implicit Differentiation}, a unified framework that leverages the flexibility of automatic differentiation (autodiff) to automate the computation of implicit gradients.
+
+The core methodology abstracts the optimality conditions of any optimization problem into a root-finding map $F: \mathbb{R}^d \times \mathbb{R}^n \to \mathbb{R}^d$. The optimal solution $x^*(\theta)$ is defined implicitly as the root:
+\begin{equation}
+  F(x^*(\theta), \theta) = 0
+\end{equation}
+By applying the Implicit Function Theorem (IFT) and leveraging autodiff to compute vector-Jacobian products (VJPs), the gradient $\partial x^*(\theta)$ is obtained by solving a linear system, without the need to unroll the solver iterations:
+\begin{equation}
+  \underbrace{-\partial_1 F(x^*(\theta), \theta)}_{A} \partial x^*(\theta) = \underbrace{\partial_2 F(x^*(\theta), \theta)}_{B}
+\end{equation}
+where $A$ and $B$ are computed automatically via autodiff. This framework modularizes the problem: the user only defines the optimality condition $F$—such as the gradient of an objective $\nabla f$ or a fixed-point residual $T(x)-x$—and the framework handles the differentiation.
+
+Crucially, the authors provide theoretical guarantees for the stability of this method when the optimization problem is solved only approximately. They establish that the error in the estimated Jacobian $J(\hat{x}, \theta)$ is bounded linearly by the error of the approximate solution $\hat{x}$:
+\begin{equation}
+  \| J(\hat{x}, \theta) - \partial x^*(\theta) \| \leq \left( \beta \alpha^{-1} + \gamma R \alpha^{-2} \right) \| \hat{x} - x^*(\theta) \|
+\end{equation}
+This bound ensures that implicit differentiation remains robust even when the forward pass solver is not run to full convergence, bridging the gap between exact theoretical gradients and practical numerical implementations.
 
 % =================================================================
-% 4. Critical Literature Review (Modified Critique)
+% 3. Critical Literature Review (Revised)
 % =================================================================
 \section{Critical Literature Review}
-We categorize the surveyed literature based on the unified formulation above.
+\label{sec:review}
 
-\subsection{Fixed-Point and ODE Based Models}
-Bai et al. \cite{bai2019deq} introduced \textbf{Deep Equilibrium Models (DEQ)}, demonstrating that one can decouple the forward solver (root-finding) from the backward solver (fixed-point differentiation). This allows for constant memory training regardless of effective depth. \textbf{Neural ODEs} \cite{chen2018neuralode} allow for continuous-depth modeling, particularly effective for time-series data, though they often require complex adaptive step-size solvers.
+We categorize the surveyed literature not merely by application, but by the computational philosophy governing the layer's definition. A distinct gap emerges: while vector-valued layers have successfully transitioned to fully implicit, iterative formulations, structured matrix layers remain bound to explicit, computationally expensive decompositions.
 
-\subsection{Differentiable Optimization Layers}
-Amos and Kolter \cite{amos2017optnet} proposed \textbf{OptNet}, enabling quadratic programs (QP) to be embedded as layers. This was generalized by Agrawal et al. \cite{agrawal2019differentiable} in \textbf{Differentiable Convex Optimization Layers}, utilizing disciplined convex programming (cvxpy) to differentiate through general convex cone programs. \textbf{Input Convex Neural Networks (ICNN)} \cite{amos2017icnn} complement this by providing an architecture that guarantees convexity, serving as valid energy functions for these optimization layers.
+\subsection{Implicit Layers in Vector Space: The "Solve-and-Differentiate" Paradigm}
+Recent advances have unified various deep learning architectures under the umbrella of root-finding problems $g(z, x, \theta) = 0$.
+\begin{itemize}
+  \item \textbf{Continuous Depth and Equilibrium:} \textbf{Neural ODEs} \cite{chen2018neuralode} and \textbf{Deep Equilibrium Models (DEQ)} \cite{bai2019deq} demonstrate that the forward pass can be decoupled from specific architectural depths. Instead of a fixed sequence of operations, the output is the limit of an iterative solver (e.g., Runge-Kutta or Broyden's method).
+  \item \textbf{Optimization as a Layer:} \textbf{OptNet} \cite{amos2017optnet} and \textbf{Differentiable Convex Layers} \cite{agrawal2019differentiable} extend this to constrained optimization. Here, the "solver" is an interior-point method.
+\end{itemize}
+\textbf{Common Thread:} In all these cases, the forward pass uses an iterative approximation, and the backward pass uses the Implicit Function Theorem (IFT) to avoid storing intermediate iteration states. This results in $O(1)$ memory cost for gradients.
 
-\subsection{Efficient Computation and Matrix Backpropagation}
-A major challenge in Eq. (6) is the cost of linear system solving. Blondel et al. \cite{blondel2021efficient} provide \textbf{Efficient and Modular Implicit Differentiation}, suggesting that the linear system can be solved using the same pre-conditioners as the forward pass. Ionescu et al. \cite{ionescu2015matrix} and Darley et al. \cite{darley2024unified} extend this to \textbf{Matrix Backpropagation}, addressing structured layers (like SVD or Eigendecomposition) often required in the definition of $g(z)$.
+\subsection{Structured Matrix Layers: The "Explicit Decomposition" Bottleneck}
+In contrast, layers that enforce matrix structural constraints (such as orthogonality or low-rankness) have largely remained "explicit."
+\begin{itemize}
+  \item \textbf{Spectral Backpropagation:} Ionescu et al. \cite{ionescu2015matrix} and the recent unified framework by Darley et al. \cite{darley2024unified} provide gradients for SVD and Eigendecomposition. While Darley et al. significantly improve backward stability using the DK/B formula, the forward pass still relies on calling \texttt{LAPACK} routines for exact Singular Value Decomposition.
+\end{itemize}
+\textbf{Critique:} This reliance on explicit SVD ($O(N^3)$ complexity) violates the "implicit" philosophy. SVD is difficult to parallelize on GPUs compared to matrix multiplication and acts as a synchronization barrier. Furthermore, even with robust gradients, the backward pass requires expensive masking to handle eigenvalue gaps.
 
-\textbf{Critique of Spectral Methods:} While Darley et al. improve the stability of Ionescu's formulation using divided differences, both methods share a fundamental limitation: they rely on explicit Spectral Decomposition (SVD or EIG) in the forward pass. SVD has a cubic time complexity $O(N^3)$ and exhibits poor instruction-level parallelism on GPUs compared to Matrix Multiplication (GEMM). Furthermore, even with the DK/B formula correction, the backpropagation process is numerically sensitive to the "eigenvalue gap" and requires expensive masking operations. This motivates our proposal to bypass SVD entirely.
+\subsection{The Missing Link: Iterative Matrix Solvers}
+The literature reveals a clear opportunity. We possess efficient iterative solvers for vectors (DEQ) and optimization (OptNet), but we lack a standard "Deep Equilibrium" formulation for fundamental matrix functions like the Matrix Square Root or Polar Decomposition. A fully implicit matrix layer should replace the explicit SVD with a GPU-friendly iterative solver (like Newton-Schulz) and derive gradients via implicit differentiation, bridging the gap between Sections 3.1 and 3.2.
 
 % =================================================================
-% 5. Proposed Method (Modified Content)
+% 4. Proposed Method (Revised)
 % =================================================================
 \section{Proposed Method: SVD-Free Newton-Schulz Layer}
 \label{sec:method}
 
 \subsection{Motivation}
-The primary bottleneck identified in Section \ref{sec:unified} is the computation of $(J_g)^{-1}$ and the reliance on SVD for matrix functions. We propose to compute matrix functions (specifically the Matrix Square Root $Y = A^{1/2}$) using an iterative solver that relies \textit{only} on matrix multiplications, and derive gradients via implicit differentiation of the defining equation.
+Based on the analysis in Section \ref{sec:review}, we propose to treat the Matrix Square Root $Y = A^{1/2}$ not as an analytical function requiring eigendecomposition, but as the fixed point of a matrix iteration. This avoids SVD entirely, relying only on Matrix-Matrix Multiplication (GEMM), which is optimized for Tensor Cores.
 
-\subsection{Forward Pass: Coupled Newton-Schulz Iteration}
-Instead of diagonalizing $A$, we use the coupled Newton-Schulz iteration. Given an SPD matrix $A$, we initialize $Y_0 = A$ and $Z_0 = I$. The update rules are:
+\subsection{Forward Pass: Pre-conditioned Newton-Schulz Iteration}
+We utilize the coupled Newton-Schulz iteration to compute $A^{1/2}$. A critical limitation of this method is that it only converges if the input matrix $A$ has a spectral norm $\|A\|_2 < 1$. To guarantee unconditional convergence for any SPD matrix $A$, we introduce a normalization step.
+
+Let $A \in \R^{n \times n}$. We first scale the matrix:
+\begin{equation}
+  \hat{A} = \frac{A}{\|A\|_F}
+\end{equation}
+We then initialize $Y_0 = \hat{A}$ and $Z_0 = I$. The coupled iterations are:
 \begin{align}
   Y_{k+1} &= \frac{1}{2} Y_k (3I - Z_k Y_k) \\
   Z_{k+1} &= \frac{1}{2} (3I - Z_k Y_k) Z_k
 \end{align}
-This iteration quadratically converges to $Y_\infty = A^{1/2}$ and $Z_\infty = A^{-1/2}$. Crucially, this involves \textbf{only matrix multiplications}, allowing for massive parallelization on Tensor Cores and avoiding the branching logic required for SVD.
+This iteration quadratically converges to $Y_\infty = \hat{A}^{1/2}$. The final output is recovered by rescaling: $Y = \sqrt{\|A\|_F} \cdot Y_\infty$. Crucially, this process involves \textbf{zero} branching logic or spectral decompositions.
 
-\subsection{Backward Pass: Implicit Differentiation via Lyapunov Solver}
-A naive approach would be to backpropagate through the unrolled iterations of Eq. (18-19), which is memory-intensive. Instead, we treat the result $Y_\star$ as the exact solution to the implicit equation:
+\subsection{Backward Pass: Implicit Differentiation via Conjugate Gradient}
+Instead of backpropagating through the $K$ iterations of the forward pass (which is memory intensive), we assume convergence and differentiate the implicit defining equation of the square root:
 \begin{equation}
-    g(Y, A) = Y^2 - A = 0
+  g(Y, A) = Y^2 - A = 0
 \end{equation}
-By differentiating this implicit equation:
+Differentiating yields the Sylvester equation (a specific form of the continuous Lyapunov equation):
 \begin{equation}
-    dY \cdot Y + Y \cdot dY = dA
+  dY \cdot Y + Y \cdot dY = dA
 \end{equation}
-Let $G = \frac{\partial \mathcal{L}}{\partial Y}$ be the incoming gradient. We seek $X = \frac{\partial \mathcal{L}}{\partial A}$. Using the trace invariance property $\Tr(G^T dY) = \Tr(X^T dA)$, it can be shown that $X$ satisfies the \textbf{continuous Lyapunov equation}:
+Let $G = \frac{\partial \mathcal{L}}{\partial Y}$ be the incoming gradient. We seek $X = \frac{\partial \mathcal{L}}{\partial A}$. Using the trace invariance $\Tr(G^T dY) = \Tr(X^T dA)$, the gradient $X$ is the solution to the linear system:
 \begin{equation}
-    \label{eq:lyapunov}
-    X Y + Y X = G
+  \label{eq:lyapunov}
+  X Y + Y X = G
 \end{equation}
-\textbf{Key Contribution:} Eq. (\ref{eq:lyapunov}) is a linear system ($Ax=b$ in vectorized form) that can be solved (e.g., via conjugate gradient or Bartels-Stewart algorithm) without ever computing eigenvalues. Since $Y=A^{1/2}$ is positive definite, the operator $\mathcal{L}(X) = XY + YX$ is always invertible. This formulation guarantees \textbf{unconditional numerical stability}, even if $A$ has repeated eigenvalues, completely bypassing the singularity issues of the $\frac{1}{\lambda_i - \lambda_j}$ term in spectral methods.
+Since $Y = A^{1/2}$ is positive definite, the linear operator $\mathcal{T}(X) = XY + YX$ is symmetric positive definite. Therefore, we can solve Eq. (\ref{eq:lyapunov}) using the \textbf{Conjugate Gradient (CG)} method.
+
+\textbf{Advantages:}
+\begin{itemize}
+  \item \textbf{SVD-Free:} Neither the forward pass (Newton-Schulz) nor the backward pass (CG on Lyapunov) requires eigenvalues.
+  \item \textbf{Stability:} Unlike the spectral gradient $\frac{1}{\lambda_i - \lambda_j}$, the Lyapunov system is well-conditioned as long as $A$ is not singular.
+\end{itemize}
 
 % =================================================================
-% 6. Numerical Experiments (Modified Content)
+% 5. Numerical Experiments
 % =================================================================
 \section{Numerical Experiments}
 \label{sec:experiments}
@@ -304,23 +322,26 @@ We evaluate performance on two metrics: (1) Gradient numerical stability under d
 \begin{figure}[h]
   \centering
   % Placeholder for stability plot
-  \fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}} 
-  \caption{\textbf{Gradient Stability Analysis.} The x-axis represents the eigenvalue gap $\delta$ (simulating degeneracy as $\delta \to 0$). The spectral-based methods (Baselines) exhibit error spikes or require careful thresholding. In contrast, our SVD-Free Newton-Schulz method maintains a constant low error rate, confirming its robustness.}
+  % \fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}}
+  \includegraphics[width=\linewidth, keepaspectratio]{../figs/newton_schulz/Stability.png}
+  \caption{\textbf{Gradient Stability Analysis.} The x-axis represents the eigenvalue gap $\delta$ (simulating degeneracy as $\delta \to 0$). The standard spectral method (Red/Ionescu) exhibits gradient explosion due to the singularity in the calculation of eigenvector derivatives. In contrast, both the Unified Framework (Green) and our Proposed SVD-Free Newton-Schulz method (Blue) maintain constant low error rates. Our method avoids eigendecomposition entirely, offering superior numerical robustness.}
   \label{fig:results_stability}
 \end{figure}
 
 \begin{figure}[h]
   \centering
   % Placeholder for speed plot
-  \fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}} 
+  % \fbox{\rule{0pt}{2in} \rule{0.9\linewidth}{0pt}}
+  \includegraphics[width=\linewidth, keepaspectratio]{../figs/newton_schulz/Speed.png}
   \caption{\textbf{Runtime Comparison.} Our method (Blue) demonstrates lower latency compared to the SVD-based Unified Framework (Red) as batch size increases (Matrix size $64 \times 64$), confirming the efficiency of avoiding eigendecomposition on GPUs.}
   \label{fig:results_speed}
 \end{figure}
 
 Preliminary results (Figure \ref{fig:results_stability} and \ref{fig:results_speed}) indicate that our approximation reduces the backward pass instability and improves runtime by approximately $1.5\times$ on large batches, while maintaining comparable accuracy to double-precision ground truth.
+\FloatBarrier
 
 % =================================================================
-% 7. Conclusion
+% 6. Conclusion
 % =================================================================
 \section{Conclusion}
 In this project, we unified various implicit deep learning models under a single root-finding framework. Building on this, we proposed the \textbf{SVD-Free Newton-Schulz Layer} to accelerate and stabilize the gradient computation for structured matrix layers. Our results suggest that combining iterative solvers with implicit Lyapunov differentiation offers a superior trade-off between stability and efficiency for modern hardware.
@@ -442,6 +463,78 @@ In this project, we unified various implicit deep learning models under a single
 
   \subsection{Conclusion}
   Based on our theoretical analysis and experimental validation, the Unified Framework~\cite{darley2024unified} is strictly superior to the approach of~\cite{ionescu2015matrix}. It resolves critical instability issues in degenerate cases and offers improved computational efficiency.
+
+  \section{Comparative Analysis of Differentiable Optimization Layers and Standard MLPs on Geometric Projection Tasks}
+  \label{sec:appendix_optnet}
+
+  This report investigates the efficacy of integrating constrained optimization problems as differentiable layers within neural networks, a mathematically grounded architecture known as OptNet. We conduct a comparative experiment between a custom \textit{OptNetLayer} and a standard Multi-Layer Perceptron (MLP) on a 2D geometric projection task. While the MLP relies on function approximation via varying parameters, the OptNet layer explicitly solves a Quadratic Program (QP) to enforce constraints. Our results demonstrate that the OptNet approach recovers the exact constraint parameters accurately, whereas the MLP struggles to model the sharp non-linearity at the constraint boundary.
+
+  \subsection{Introduction}
+  Deep learning has achieved remarkable success in function approximation. However, traditional feedforward networks often struggle to capture strict logical constraints or hard dependencies between hidden states. The OptNet architecture proposes treating exact, constrained optimization as an individual layer within a deep network. By differentiating through the Karush-Kuhn-Tucker (KKT) conditions of a quadratic program, gradients can be backpropagated to learn the constraint parameters.
+
+  In this experiment, we apply these principles to a fundamental problem: learning an exact projection onto a linear half-space from data, without a priori knowledge of the boundary parameters.
+
+  \subsection{Methodology}
+
+  \subsubsection{Problem Formulation}
+  We define a ground truth constraint in $\mathbb{R}^2$ represented by the inequality $x_1 + x_2 \le 1$. The objective is to map an input point $x$ to its projection $z^*$ onto the feasible set defined by this constraint.
+
+  The training data $X_{train}$ consists of 150 points drawn from a Uniform distribution over $[-3, 3] \times [-3, 3]$, ensuring a balanced representation of points both inside (feasible) and outside (infeasible) the constraint region. Ground truth labels $Y_{train}$ are generated analytically by projecting violating points onto the line $x_1 + x_2 = 1$.
+
+  \subsubsection{Model Architectures}
+
+  \textbf{Model A: OptNetLayer}
+
+  This model represents the OptNet philosophy. The layer does not approximate the function directly; instead, it defines the output $z^*$ as the solution to the following Quadratic Program:
+  \begin{equation}
+    z^* = \mathop{\mathrm{argmin}}_{z} \frac{1}{2}z^T Q z + p^T z \quad \text{s.t.} \quad Gz \le h
+  \end{equation}
+  In our implementation, $Q$ is fixed as the identity matrix (Euclidean projection) and $p=-x$. The constraint parameters $G \in \mathbb{R}^{1 \times 2}$ and $h \in \mathbb{R}^1$ are learnable.
+  \begin{itemize}
+    \item \textbf{Forward Pass:} Solved using the primal-dual interior point method via the \texttt{cvxopt} library.
+    \item \textbf{Backward Pass:} Gradients are computed by solving the linear system derived from the matrix differential of the KKT conditions. The system is solved using \texttt{torch.linalg.solve} on the KKT matrix constructed at the optimum.
+    \item \textbf{Initialization:} $G$ is initialized from a standard normal distribution, and $h$ is initialized strictly positive (via random sampling plus a margin) to ensure initial feasibility.
+  \end{itemize}
+
+  \textbf{Model B: Baseline MLP}
+
+  The baseline is a standard feedforward network designed for function approximation. It utilizes a higher parameter budget to attempt to fit the piecewise function:
+  \begin{itemize}
+    \item Linear ($2 \to 64$) + ReLU
+    \item Linear ($64 \to 64$) + ReLU
+    \item Linear ($64 \to 2$)
+  \end{itemize}
+  This model attempts to learn the projection mapping purely via gradient descent on the Mean Squared Error surface, without structural knowledge of the optimization problem.
+
+  \subsubsection{Training Setup}
+  Both models are trained using the Mean Squared Error (MSE) loss for 100 epochs.
+  \begin{itemize}
+    \item \textbf{OptNet:} Optimizer: SGD, Learning Rate: $0.05$, Momentum: $0.9$.
+    \item \textbf{MLP:} Optimizer: Adam, Learning Rate: $0.01$.
+  \end{itemize}
+
+  \subsection{Experimental Results}
+
+  \subsubsection{Convergence and Visual Analysis}
+  We evaluated the models on a dense grid of test points spanning $[-3, 3]$. The qualitative results are visualized in Figure \ref{fig:comparison}.
+
+  \begin{figure}[htbp]
+    \centering
+
+    \includegraphics[width=\linewidth]{../figs/optnet/optnet_comparison.png}
+    \caption{Visual comparison of the learned projection fields on the test grid.
+      \textbf{Left:} The OptNet layer learns a sharp linear boundary (red dashed line) that coincides almost perfectly with the ground truth constraint (blue line). The displacement vectors are strictly orthogonal to the boundary.
+    \textbf{Right:} The MLP baseline approximates the projection field but fails to capture the sharp "kink" at the constraint boundary $x_1+x_2=1$, resulting in a smoothed approximation that violates the strict geometric logic.}
+    \label{fig:comparison}
+  \end{figure}
+
+  \begin{itemize}
+    \item \textbf{OptNet (Structural Learning):} The model successfully recovered the constraint parameters. As shown in the left panel of Figure \ref{fig:comparison}, the displacement field shows zero displacement inside the feasible region and strictly perpendicular projections outside, creating a sharp decision boundary that matches the ground truth.
+    \item \textbf{MLP (Approximation):} While the MLP achieved a low training loss, the displacement field (Figure \ref{fig:comparison}, right panel) reveals "smoothed" corners near the decision boundary. The model approximates the projection function continuously but fails to capture the instantaneous non-linearity required by the inequality constraint $x_1 + x_2 \le 1$.
+  \end{itemize}
+
+  \subsection{Discussion and Conclusion}
+  This experiment validates the core premise of the OptNet approach: incorporating domain-specific optimization structures allows for learning interpretable constraints. While the MLP acts as a universal approximator, it requires significantly more parameters and struggles to represent the hard threshold of the constraint exactly. In contrast, the OptNet layer, by leveraging the gradients of the KKT conditions, successfully decoupled the logic of the constraint from the data distribution, allowing for mathematically precise generalization.
 
 \end{appendices}
 

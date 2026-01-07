@@ -235,8 +235,8 @@ def train_fair():
                       X_test, mlp_out)
 
     plt.tight_layout()
-    plt.savefig('optnet_fair_comparison.png')
-    print("公平对比图已保存为 optnet_fair_comparison.png")
+    plt.savefig('optnet_comparison.png')
+    print("公平对比图已保存为 optnet_comparison.png")
     plt.show()
 
 if __name__ == "__main__":
